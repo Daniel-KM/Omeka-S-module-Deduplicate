@@ -58,6 +58,12 @@ class IndexController extends AbstractActionController
                 $this->messenger()->addError('A value to deduplicate on is required.'); // @translate
                 $hasError = true;
             }
+
+            if (mb_strlen($value) > 255) {
+                $this->messenger()->addError('The string is too long (more than %d characters).', 255); // @translate
+                $hasError = true;
+            }
+
             $args['value'] = $value;
 
             $resourceTypes = [
@@ -186,6 +192,49 @@ class IndexController extends AbstractActionController
      */
     protected function near(?string $value, $propertyId, string $resourceType, array $query): array
     {
-        return [$value];
+        if (is_null($value) || !$propertyId) {
+            return [];
+        }
+        $query['property'][] = [
+            'property' => $propertyId,
+            'type' => 'ex',
+        ];
+        $filteredIds = $this->api()->search($resourceType, $query, ['returnScalar' => 'id'])->getContent();
+        if (!count($filteredIds)) {
+            return [];
+        }
+
+        /** @var \Doctrine\DBAL\Connection $connection */
+        $connection = $this->api()->read('vocabularies', 1)->getContent()->getServiceLocator()->get('Omeka\Connection');
+        $qb = $connection->createQueryBuilder();
+        $expr = $qb->expr();
+        $qb
+            ->select('DISTINCT value.value')
+            ->from('value', 'value')
+            ->where($expr->eq('value.property_id', ':property_id'))
+            ->andWhere($expr->in('value.resource_id', ':resource_ids'))
+            ->addOrderBy('value.value', 'asc')
+        ;
+        $bind = [
+            'property_id' => $propertyId,
+            'resource_ids' => $filteredIds,
+        ];
+        $types = [
+            'property_id' => \Doctrine\DBAL\ParameterType::INTEGER,
+            'resource_ids' => $connection::PARAM_INT_ARRAY,
+        ];
+        $allValues = $connection->executeQuery($qb, $bind, $types)->fetchFirstColumn();
+
+        $result = [];
+        $percent = null;
+        $lowerValue = mb_strtolower($value);
+        foreach ($allValues as $oneValue) {
+            similar_text($lowerValue, mb_strtolower($oneValue), $percent);
+            if ($percent > 66) {
+                $result[] = $oneValue;
+            }
+        }
+
+        return $result;
     }
 }
