@@ -54,6 +54,10 @@ class Module extends AbstractModule
 {
     const NAMESPACE = __NAMESPACE__;
 
+    protected $dependencies = [
+        'AdvancedSearch',
+    ];
+
     public function attachListeners(SharedEventManagerInterface $sharedEventManager): void
     {
         $sharedEventManager->attach(
