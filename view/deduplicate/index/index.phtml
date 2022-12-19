@@ -15,6 +15,7 @@
 $maxResources = \Deduplicate\Controller\IndexController::MAX_TO_MERGE;
 
 $plugins = $this->getHelperPluginManager();
+$url = $plugins->get('url');
 $escape = $plugins->get('escapeHtml');
 $translate = $plugins->get('translate');
 
@@ -35,12 +36,18 @@ $isPost = $property && strlen($value);
 
 <?php endif; ?>
 
+<p class="explanation">
+    <?= sprintf($translate('Select a property and a value to process a new merge, or go to %sresources%s to filter them first.'), '<a href="' . $url('admin/default', ['controller' => 'item']) . '"/>', '</a>') ?>
+</p>
+
 <?= $this->form($form); ?>
 
-<?php if ($isPost && !$totalResources): ?>
+<?php if (!$totalResources): ?>
+    <?php if ($isPost): ?>
     <p class="explanation">
         <?= sprintf($translate('The query returned no results.')) ?>
     </p>
+    <?php endif; ?>
 <?php else: ?>
     <?php if ($totalResources === 1): ?>
     <p class="explanation">

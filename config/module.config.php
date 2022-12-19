@@ -34,6 +34,18 @@ return [
             ],
         ],
     ],
+    'navigation' => [
+        'AdminModule' => [
+            'deduplicate' => [
+                'label' => 'Deduplicate', // @translate
+                'route' => 'admin/deduplicate',
+                'controller' => 'index',
+                'resource' => 'Omeka\Controller\Admin\Item',
+                'privilege' => 'batch-delete',
+                'class' => 'o-icon- item-sets',
+            ],
+        ],
+    ],
     'translator' => [
         'translation_file_patterns' => [
             [
