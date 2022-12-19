@@ -8,6 +8,8 @@ use Omeka\Stdlib\Message;
 
 class IndexController extends AbstractActionController
 {
+    const MAX_TO_MERGE = \Omeka\Stdlib\Paginator::PER_PAGE;
+
     public function indexAction()
     {
         /** @var \Deduplicate\Form\DeduplicateForm $form */
@@ -88,7 +90,7 @@ class IndexController extends AbstractActionController
 
             if ($query) {
                 $args['query'] = $query;
-                $args['totalResourcesQuery'] = $api->search($resourceType, $query)->getTotalResults();
+                $args['totalResourcesQuery'] = $api->search($resourceType, $query + ['limit' => 0])->getTotalResults();
                 if (!$args['totalResourcesQuery']) {
                     $this->messenger()->addError('The query returned no resource.'); // @translate
                     $hasError = true;
@@ -102,7 +104,8 @@ class IndexController extends AbstractActionController
                 'type' => 'near',
                 'value' => $value,
             ];
-            $query['limit'] = $this->settings()->get('pagination_per_page') ?: \Omeka\Stdlib\Paginator::PER_PAGE;
+            // $query['limit'] = $this->settings()->get('pagination_per_page') ?: \Omeka\Stdlib\Paginator::PER_PAGE;
+            $query['limit'] = self::MAX_TO_MERGE;
 
             $response = $api->search($resourceType, $query);
             $args['resources'] = $response->getContent();
