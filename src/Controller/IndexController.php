@@ -74,7 +74,11 @@ class IndexController extends AbstractActionController
             $args['resourceType'] = $resourceType;
 
             $query = [];
-            $batchAction = $params['batch_action'] ?? 'deduplicate_all';
+
+            $batchAction = isset($params['deduplicate_selected']) || (isset($params['batch_action']) && $params['batch_action'] === 'deduplicate_selected')
+                ? 'deduplicate_selected'
+                : 'deduplicate_all';
+
             if ($batchAction === 'deduplicate_selected') {
                 $resourceIds = $params['resource_ids'] ?? [];
                 $resourceIds = array_unique(array_filter($resourceIds));
@@ -97,24 +101,68 @@ class IndexController extends AbstractActionController
                 }
             }
 
-            // Do the search via module AdvancedSearch.
-            $queryProperty = $query;
-            $queryProperty['property'][] = [
-                'property' => $property->term(),
-                'type' => 'near',
-                'value' => $value,
-            ];
-            // $query['limit'] = $this->settings()->get('pagination_per_page') ?: \Omeka\Stdlib\Paginator::PER_PAGE;
-            $query['limit'] = self::MAX_TO_MERGE;
+            if (!$hasError) {
+                $nearValues = $this->near($value, $property->id(), $resourceType, $query);
+                if (is_null($nearValues)) {
+                    $this->messenger()->addWarning(new Message('There are too many similar values near "%s". You may filter resources first.', $value)); // @translate
+                    $hasError = true;
+                } elseif (!$nearValues) {
+                    $this->messenger()->addWarning(new Message('There is no existing value near "%s".', $value)); // @translate
+                    $hasError = true;
+                } else {
+                    // Do the search via module AdvancedSearch.
+                    $queryProperty = $query;
+                    /* TODO Add a near query in Advanced Search via mysql.
+                    $queryProperty['property'][] = [
+                        'property' => $property->term(),
+                        'type' => 'near',
+                        'value' => $value,
+                    ];
+                    */
+                    $queryProperty['property'][] = [
+                        'property' => $property->term(),
+                        'type' => 'list',
+                        'text' => $nearValues,
+                    ];
+                    // $queryProperty['limit'] = $this->settings()->get('pagination_per_page') ?: \Omeka\Stdlib\Paginator::PER_PAGE;
+                    $queryProperty['limit'] = self::MAX_TO_MERGE;
 
-            $response = $api->search($resourceType, $query);
-            $args['resources'] = $response->getContent();
-            $args['totalResources'] = $response->getTotalResults();
+                    $response = $api->search($resourceType, $queryProperty);
+                    $args['resources'] = $response->getContent();
+                    $args['totalResources'] = $response->getTotalResults();
+
+                    $resourceId = isset($params['resource_id']) ? (int) $params['resource_id'] : 0;
+                    if ($resourceId) {
+                        $resource = $api->search($resourceType, ['id' => $resourceId])->getContent();
+                        if (!$resource) {
+                            $this->messenger()->addError(new Message('The resource %s does not exist.', $params['resource_id'])); // @translate
+                            $hasError = true;
+                        }
+                    }
+
+                    // Sometime, a 0 is included in the list of selected resource
+                    // ids and that may break advanced search.
+
+                    $resourcesMerged = [];
+                    if (!empty($params['resources_merged'])) {
+                        $params['resources_merged'] = array_unique(array_filter($params['resources_merged'])) ?: [];
+                        $resourcesMerged = $api->search($resourceType, ['id' => $params['resources_merged']], ['returnScalar' => 'id'])->getContent();
+                        if (!$resourcesMerged || count($resourcesMerged) !== count($params['resources_merged'])) {
+                            $this->messenger()->addError(new Message('Some merged resources do not exist.')); // @translate
+                            $hasError = true;
+                        }
+                    }
+                }
+            }
         }
 
         $view = new ViewModel($args);
 
         if ($hasError || !$isPost) {
+            return $view;
+        }
+
+        if ($resourceId && $resourcesMerged) {
             return $view;
         }
 
@@ -130,5 +178,14 @@ class IndexController extends AbstractActionController
         }
 
         return $view;
+    }
+
+    /**
+     * There is no simple way to do a search "similar" in mysql and doctrine
+     * doesn't implement "soundex" easily, so process via php.
+     */
+    protected function near(?string $value, $propertyId, string $resourceType, array $query): array
+    {
+        return [$value];
     }
 }
