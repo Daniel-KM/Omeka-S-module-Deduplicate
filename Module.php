@@ -39,6 +39,8 @@ if (!class_exists(\Generic\AbstractModule::class)) {
 }
 
 use Generic\AbstractModule;
+use Laminas\EventManager\Event;
+use Laminas\EventManager\SharedEventManagerInterface;
 
 /**
  * Deduplicate
@@ -51,4 +53,31 @@ use Generic\AbstractModule;
 class Module extends AbstractModule
 {
     const NAMESPACE = __NAMESPACE__;
+
+    public function attachListeners(SharedEventManagerInterface $sharedEventManager): void
+    {
+        $sharedEventManager->attach(
+            'Omeka\Controller\Admin\Item',
+            'view.browse.before',
+            [$this, 'addHeadersAdmin']
+        );
+        $sharedEventManager->attach(
+            'Omeka\Controller\Admin\ItemSet',
+            'view.browse.before',
+            [$this, 'addHeadersAdmin']
+        );
+        $sharedEventManager->attach(
+            'Omeka\Controller\Admin\Media',
+            'view.browse.before',
+            [$this, 'addHeadersAdmin']
+        );
+    }
+
+    public function addHeadersAdmin(Event $event): void
+    {
+        $view = $event->getTarget();
+        $assetUrl = $view->plugin('assetUrl');
+        $view->headScript()
+            ->appendFile($assetUrl('js/deduplicate.js', 'Deduplicate'), 'text/javascript', ['defer' => 'defer']);
+    }
 }

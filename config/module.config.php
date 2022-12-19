@@ -13,6 +13,11 @@ return [
             ],
         ],
     ],
+    'js_translate_strings' => [
+        'Deduplicate on:', // @translate
+        'Property id', // @translate
+        'Value', // @translate
+    ],
     'deduplicate' => [
     ],
 ];
