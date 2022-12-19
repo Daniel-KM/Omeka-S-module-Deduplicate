@@ -10,6 +10,21 @@ Voir le [Lisez-moi] en français.
 [Deduplicate] is a module for [Omeka S] that allows to search for duplicate
 resources based on a value and to merge them.
 
+The search of duplicate resources can be done strictly or with heuristics:
+
+- [Similar text]
+  The number of matching characters is calculated by finding the longest first
+  common substring, and then doing this for the prefixes and the suffixes,
+  recursively. The lengths of all found common substrings are added.
+- [Levenshtein distance]
+  The distance is the minimum number of single-character edits (insertions,
+  deletions or substitutions) required to change one word into the other.
+- [Soundex]
+  Phonetic algorithm for indexing names by sound, as pronounced in British
+  English.
+- [Metaphone]
+  Improved version of Soundex.
+
 
 Installation
 ------------
@@ -104,6 +119,10 @@ Université des Antilles and Université de la Guyane, currently managed with
 [Deduplicate]: https://gitlab.com/Daniel-KM/Omeka-S-module-Deduplicate
 [Lisez-moi]: https://gitlab.com/Daniel-KM/Omeka-S-module-Deduplicate/-/blob/master/LISEZMOI.md
 [Omeka S]: https://omeka.org/s
+[Similar text]: https://www.php.net/manual/en/function.similar-text
+[Levenshtein distance]: https://en.wikipedia.org/wiki/Levenshtein_distance
+[Soundex]: https://en.wikipedia.org/wiki/Soundex
+[Metaphone]: https://en.wikipedia.org/wiki/Metaphone
 [Installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
 [module issues]: https://gitlab.com/Daniel-KM/Omeka-S-module-Deduplicate/-/issues
 [CeCILL v2.1]: https://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html

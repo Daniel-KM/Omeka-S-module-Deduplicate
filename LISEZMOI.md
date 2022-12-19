@@ -10,6 +10,21 @@ See [English readme].
 [Dédoublonnage] est un module pour [Omeka S] qui permet de rechercher des
 ressources doublonnées en fonction d’une valeur et de les fusionner.
 
+La recherche de doublon peut se faire de façon stricte ou selon des heuristiques :
+
+- [Texte similaire]
+  Le nombre de caractères correspondant est calculé en trouvant la première plus
+  longue sous-chaîne commune, puis de même pour les préfixes et les suffixes, de
+  façon récursive. La longueur de toutes les sous-chaînes communes sont ajoutées.
+- [Distance de Levenshtein]
+  La distance correspond au nombre minimal de caractères qu’il faut supprimer,
+  insérer ou remplacer pour passer d’une chaîne à l’autre.
+- [Soundex]
+  Algorithme phonétique d’indexation de noms par leur prononciation en anglais
+  britannique.
+- [Metaphone]
+  Version améliorée de Soundex.
+
 
 Installation
 ------------
@@ -104,9 +119,14 @@ Ces fonctionnalités sont destinées à la future bibliothèque numérique [Mani
 de l’Université des Antilles et de l’Université de la Guyane, actuellement gérée
 avec [Greenstone].
 
+
 [Dédoublonnage]: https://gitlab.com/Daniel-KM/Omeka-S-module-Deduplicate
 [English readme]: https://gitlab.com/Daniel-KM/Omeka-S-module-Deduplicate/-/blob/master/README.md
 [Omeka S]: https://omeka.org/s
+[Texte similaire]: https://www.php.net/manual/fr/function.similar-text
+[Distance de Levenshtein]: https://fr.wikipedia.org/wiki/Distance_de_Levenshtein
+[Soundex]: https://fr.wikipedia.org/wiki/Soundex
+[Metaphone]: https://fr.wikipedia.org/wiki/Metaphone
 [installer un module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
 [questions du module]: https://gitlab.com/Daniel-KM/Omeka-S-module-Deduplicate/-/issues
 [CeCILL v2.1]: https://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
