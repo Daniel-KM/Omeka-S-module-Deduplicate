@@ -23,7 +23,7 @@ class DeduplicateForm extends Form
                 'attributes' => [
                     'id' => 'deduplicate-property',
                     'class' => 'chosen-select',
-                    'required' => true,
+                    'required' => false,
                     'data-placeholder' => 'Select a property…', // @translate
                 ],
             ])
@@ -35,7 +35,6 @@ class DeduplicateForm extends Form
                 ],
                 'attributes' => [
                     'id' => 'deduplicate-value',
-                    'required' => true,
                 ],
             ])
             ->add([
@@ -44,6 +43,7 @@ class DeduplicateForm extends Form
                 'options' => [
                     'label' => 'Heuristic to find similar values', // @translate
                     'value_options' => [
+                        'equal' => 'Equal', // @translate
                         'similar_text' => 'Similar text', // @translate
                         'levenshtein' => 'Levenshtein', // @translate
                         'metaphone' => 'Metaphone', // @translate
@@ -53,7 +53,7 @@ class DeduplicateForm extends Form
                 'attributes' => [
                     'id' => 'deduplicate-method',
                     'required' => false,
-                    'value' => 'similar_text',
+                    'value' => 'equal',
                 ],
             ])
             /*
@@ -69,6 +69,10 @@ class DeduplicateForm extends Form
 
         $inputFilter = $this->getInputFilter();
         $inputFilter
+            ->add([
+                'name' => 'deduplicate_property',
+                'required' => false,
+            ])
             ->add([
                 'name' => 'method',
                 'required' => false,

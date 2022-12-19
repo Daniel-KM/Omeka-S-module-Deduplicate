@@ -14,8 +14,6 @@ class IndexController extends AbstractActionController
     {
         /** @var \Deduplicate\Form\DeduplicateForm $form */
         $form = $this->getForm(\Deduplicate\Form\DeduplicateForm::class);
-        // There is no csrf in batch edit. So checks are done directly with api.
-        $form->remove('deduplicateform_csrf');
 
         $request = $this->getRequest();
         $params = $request->getPost();
@@ -39,11 +37,8 @@ class IndexController extends AbstractActionController
         $isPost = $request->isPost();
 
         if ($isPost) {
-            $property = $params['deduplicate_property'] ?? null;
-            if (!$property || (!is_numeric($property) && !strpos($property, ':'))) {
-                $this->messenger()->addError('A property is required to search on.'); // @translate
-                $hasError = $isPost ? true : false;
-            } else {
+            $property = empty($params['deduplicate_property']) ? null : $params['deduplicate_property'];
+            if ($property) {
                 /** @var \Omeka\Api\Representation\PropertyRepresentation $property */
                 $property = $api->searchOne('properties', is_numeric($property) ? ['id' => (int) $property] : ['vocabulary_prefix' => strtok($property, ':'), 'local_name' => strtok(':')])->getContent();
                 if (!$property) {
@@ -51,12 +46,14 @@ class IndexController extends AbstractActionController
                     $hasError = true;
                 }
             }
-
             $args['property'] = $property;
 
             $value = $params['deduplicate_value'] ?? '';
-            if (!strlen($value)) {
+            if ($property && !strlen($value)) {
                 $this->messenger()->addError('A value to deduplicate on is required.'); // @translate
+                $hasError = true;
+            } elseif (!$property && strlen($value)) {
+                $this->messenger()->addError('A property is required to search on.'); // @translate
                 $hasError = true;
             }
 
@@ -108,67 +105,85 @@ class IndexController extends AbstractActionController
                 }
             }
 
+            $method = $params['method'] ?? 'equal';
+            $args['method'] = $method;
+
             if (!$hasError) {
-                $method = $params['method'] ?? 'similar_text';
-                $args['method'] = $method;
+                // Do the search via module AdvancedSearch.
+                $queryResources = $query;
+                if ($property && strlen($value)) {
+                    $nearValues = $this->near($method, $value, $property->id(), $resourceType, $query);
+                    if (is_null($nearValues)) {
+                        $this->messenger()->addWarning(new Message('There are too many similar values near "%s". You may filter resources first.', $value)); // @translate
+                        $hasError = true;
+                    } elseif (!$nearValues) {
+                        $this->messenger()->addWarning(new Message('There is no existing value for property "%1$s" near "%2$s".', $property->term(), $value)); // @translate
+                        $hasError = true;
+                    } else {
+                        /* TODO Add a near query in Advanced Search via mysql.
+                        $queryResources['property'][] = [
+                            'property' => $property->term(),
+                            'type' => 'near',
+                            'value' => $value,
+                        ];
+                        */
+                        $queryResources['property'][] = [
+                            'property' => $property->term(),
+                            'type' => 'list',
+                            'text' => $nearValues,
+                        ];
+                    }
+                }
+                if (!$hasError) {
+                    // $queryResources['limit'] = $this->settings()->get('pagination_per_page') ?: \Omeka\Stdlib\Paginator::PER_PAGE;
+                    $queryResources['limit'] = self::MAX_TO_MERGE;
 
-                $nearValues = $this->near($method, $value, $property->id(), $resourceType, $query);
-                if (is_null($nearValues)) {
-                    $this->messenger()->addWarning(new Message('There are too many similar values near "%s". You may filter resources first.', $value)); // @translate
-                    $hasError = true;
-                } elseif (!$nearValues) {
-                    $this->messenger()->addWarning(new Message('There is no existing value near "%s".', $value)); // @translate
-                    $hasError = true;
-                } else {
-                    // Do the search via module AdvancedSearch.
-                    $queryProperty = $query;
-                    /* TODO Add a near query in Advanced Search via mysql.
-                    $queryProperty['property'][] = [
-                        'property' => $property->term(),
-                        'type' => 'near',
-                        'value' => $value,
-                    ];
-                    */
-                    $queryProperty['property'][] = [
-                        'property' => $property->term(),
-                        'type' => 'list',
-                        'text' => $nearValues,
-                    ];
-                    // $queryProperty['limit'] = $this->settings()->get('pagination_per_page') ?: \Omeka\Stdlib\Paginator::PER_PAGE;
-                    $queryProperty['limit'] = self::MAX_TO_MERGE;
-
-                    $response = $api->search($resourceType, $queryProperty);
+                    $response = $api->search($resourceType, $queryResources);
                     $args['resources'] = $response->getContent();
                     $args['totalResources'] = $response->getTotalResults();
+                }
+            }
 
-                    $resourceId = isset($params['resource_id']) ? (int) $params['resource_id'] : 0;
-                    if ($resourceId) {
-                        $resource = $api->search($resourceType, ['id' => $resourceId])->getContent();
-                        if (!$resource) {
-                            $this->messenger()->addError(new Message('The resource %s does not exist.', $params['resource_id'])); // @translate
-                            $hasError = true;
-                        }
+            $resourceId = isset($params['resource_id']) ? (int) $params['resource_id'] : 0;
+            $resourcesMerged = [];
+            if ($resourceId) {
+                $resource = $api->search($resourceType, ['id' => $resourceId])->getContent();
+                if (!$resource) {
+                    $this->messenger()->addError(new Message('The resource %s does not exist.', $params['resource_id'])); // @translate
+                    $hasError = true;
+                }
 
-                        // Sometime, a 0 is included in the list of selected resource
-                        // ids and that may break advanced search.
+                // Sometime, a 0 is included in the list of selected resource
+                // ids and that may break advanced search.
 
-                        $resourcesMerged = [];
-                        if (!empty($params['resources_merged'])) {
-                            $params['resources_merged'] = array_unique(array_filter($params['resources_merged'])) ?: [];
-                            $resourcesMerged = $api->search($resourceType, ['id' => $params['resources_merged']], ['returnScalar' => 'id'])->getContent();
-                            if (!$resourcesMerged || count($resourcesMerged) !== count($params['resources_merged'])) {
-                                $this->messenger()->addError(new Message('Some merged resources do not exist.')); // @translate
-                                $hasError = true;
-                            }
-                        }
+                if (!empty($params['resources_merged'])) {
+                    $params['resources_merged'] = array_unique(array_filter($params['resources_merged'])) ?: [];
+                    $resourcesMerged = $api->search($resourceType, ['id' => $params['resources_merged']], ['returnScalar' => 'id'])->getContent();
+                    if (!$resourcesMerged || count($resourcesMerged) !== count($params['resources_merged'])) {
+                        $this->messenger()->addError(new Message('Some merged resources do not exist.')); // @translate
+                        $hasError = true;
                     }
                 }
             }
         }
 
+        $form->init();
+        $form->setData([
+            'deduplicate_property' => isset($property) ? $property->term() : null,
+            'deduplicate_value' => $value ?? null,
+            'method' => $method ?? 'equal',
+            'deduplicateform_csrf' => $params['deduplicateform_csrf'] ?? null,
+        ]);
+
         $view = new ViewModel($args);
 
-        if ($hasError || !$isPost) {
+        if ($hasError || !$isPost || isset($params['batch_action'])) {
+            return $view;
+        }
+
+        // Useless: the form is checked above.
+        if (!$form->isValid()) {
+            $this->messenger()->addErrors($form->getMessages());
             return $view;
         }
 
@@ -201,17 +216,6 @@ class IndexController extends AbstractActionController
             return $view;
         }
 
-        // Useless: the form is checked above.
-        $form->init();
-        $form->setData([
-            'deduplicate_property' => $property ? $property->term() : null,
-            'deduplicate_value' => $value,
-        ]);
-        if (!$form->isValid()) {
-            $this->messenger()->addErrors($form->getMessages());
-            return $view;
-        }
-
         return $view;
     }
 
@@ -229,18 +233,24 @@ class IndexController extends AbstractActionController
             'property' => $propertyId,
             'type' => 'ex',
         ];
-        $filteredIds = $this->api()->search($resourceType, $query, ['returnScalar' => 'id'])->getContent();
-        if (!count($filteredIds)) {
+        $response = $this->api()->search($resourceType, $query, ['returnScalar' => 'id']);
+        if (!$response->getTotalResults()) {
             return [];
         }
 
         $methods = [
+            'equal',
             'similar_text',
             'levenshtein',
             'metaphone',
             'soundex',
         ];
-        $method = in_array($method, $methods) ? $method : 'similar_text';
+        $method = in_array($method, $methods) ? $method : 'equal';
+        if ($method === 'equal') {
+            return [$value];
+        }
+
+        $filteredIds = $response->getContent();
 
         /** @var \Doctrine\DBAL\Connection $connection */
         $connection = $this->api()->read('vocabularies', 1)->getContent()->getServiceLocator()->get('Omeka\Connection');
@@ -270,6 +280,7 @@ class IndexController extends AbstractActionController
 
         switch ($method) {
             default:
+                return [];
             case 'similar_text':
                 foreach ($allValues as $oneValue) {
                     similar_text($lowerValue, mb_strtolower($oneValue), $percent);

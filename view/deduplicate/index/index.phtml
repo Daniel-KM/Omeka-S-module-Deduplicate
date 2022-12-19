@@ -26,32 +26,31 @@ $this->htmlElement('body')->appendAttribute('class', 'deduplicate resources show
 $form->prepare();
 
 $hasMultipleResources = $totalResources > 1;
-$isPost = $property && strlen($value);
 ?>
 
 <?= $this->pageTitle($translate('Deduplicate resources')) ?>
 
-<?php if ($query): ?>
+<?php if ($totalResourcesQuery): ?>
 
     <p class="explanation">
         <?= sprintf('The query filtering resources returned %d resources.', $totalResourcesQuery) ?>
     </p>
 
-<?php endif; ?>
+    <p class="explanation">
+        <?= sprintf($translate('To refine the list, select a property and a value or select %sresources%s directly.'), '<a href="' . $url('admin/default', ['controller' => 'item']) . '"/>', '</a>') ?>
+    </p>
 
-<p class="explanation">
-    <?= sprintf($translate('Select a property and a value to process a new merge, or go to %sresources%s to filter them first.'), '<a href="' . $url('admin/default', ['controller' => 'item']) . '"/>', '</a>') ?>
-</p>
+<?php else: ?>
+
+    <p class="explanation">
+        <?= sprintf($translate('To get a list of resources to merge, select a property and a value or go to %sresources%s to filter them.'), '<a href="' . $url('admin/default', ['controller' => 'item']) . '"/>', '</a>') ?>
+    </p>
+
+<?php endif; ?>
 
 <?= $this->form($form); ?>
 
-<?php if (!$totalResources): ?>
-    <?php if ($isPost): ?>
-    <p class="explanation">
-        <?= sprintf($translate('The query returned no results.')) ?>
-    </p>
-    <?php endif; ?>
-<?php else: ?>
+<?php if ($totalResources): ?>
     <?php if ($totalResources === 1): ?>
     <p class="explanation">
         <?= sprintf($translate('The query returned a single result.')) ?>
@@ -64,13 +63,16 @@ $isPost = $property && strlen($value);
 
     <?php if ($hasMultipleResources): ?>
     <form id="deduplicate-resource" method="POST" name="deduplicate-resource">
-        <input type="hidden" name="query" value="<?= $escapeAttr(json_encode($query ?: array_keys($resources), 320)) ?>"/>
+        <input type="hidden" name="query" value="<?= $escapeAttr(json_encode($query ?: array_map(function($v) { return $v->id(); }, $resources), 320)) ?>"/>
         <input type="hidden" name="resource_type" value="<?= $escapeAttr($resourceType) ?>"/>
         <input type="hidden" name="deduplicate_property" value="<?= $property ? $escapeAttr($property->term()) : '' ?>"/>
         <input type="hidden" name="deduplicate_value" value="<?= $escapeAttr($value) ?>"/>
         <input type="hidden" name="method" value="<?= $escapeAttr($method) ?>"/>
+        <input type="hidden" name="deduplicateform_csrf" value="<?= $form->get('deduplicateform_csrf')->getValue() ?>"/>
         <p>
-            <?= $translate('Select the resource to keep and the ones to merge:') ?>
+            <?= $translate('Select the resource to keep and the ones to merge.') ?>
+            <br/>
+            <?= $translate('Merge mode: remove all duplicate resources and update all linked resources to the one kept.') ?>
         </p>
     <?php endif; ?>
 
@@ -80,8 +82,8 @@ $isPost = $property && strlen($value);
 
     <?php if ($hasMultipleResources): ?>
     <div>
-        <input type="radio" name="resource_id" value="<?= $resource->id() ?>" aria-label="<?= $translate('Select resource to keep') ?>" required="required"/>
-        <input type="checkbox" name="resources_merged[]" value="<?= $resource->id() ?>" aria-label="<?= $translate('Select resource to merge') ?>"/>
+        <input type="radio" name="resource_id" value="<?= $resource->id() ?>" aria-label="<?= $translate('Select resource to keep') ?>" required="required"><?= $translate('Keep') ?></input>
+        <input type="checkbox" name="resources_merged[]" value="<?= $resource->id() ?>" aria-label="<?= $translate('Select resource to merge') ?>"><?= $translate('Merge') ?></input>
     </div>
     <?php endif; ?>
 
@@ -114,7 +116,7 @@ $isPost = $property && strlen($value);
 <div id="page-actions">
     <?= $this->cancelButton() ?>
     <button type="submit" name="deduplicate_all" form="deduplicateform"><?= $escape('Search') ?></button>
-    <?php if ($hasMultipleResources && $isPost): ?>
+    <?php if ($hasMultipleResources): ?>
     <button type="submit" name="deduplicate_submit" form="deduplicate-resource"><?= $escape('Merge') ?></button>
     <?php endif; ?>
 </div>
