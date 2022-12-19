@@ -42,10 +42,12 @@ class DeduplicateForm extends Form
                 'type' => Element\Radio::class,
                 'options' => [
                     'label' => 'Heuristic to find similar values', // @translate
+                    'info' => 'Different algorithms can be used to detect "similar" values.', // @translate
+                    'documentation' => 'https://gitlab.com/Daniel-KM/Omeka-S-module-Deduplicate/-/blob/master/LISEZMOI.md',
                     'value_options' => [
                         'equal' => 'Equal', // @translate
                         'similar_text' => 'Similar text', // @translate
-                        'levenshtein' => 'Levenshtein', // @translate
+                        'levenshtein' => 'Levenshtein distance', // @translate
                         'metaphone' => 'Metaphone', // @translate
                         'soundex' => 'Soundex', // @translate
                     ],

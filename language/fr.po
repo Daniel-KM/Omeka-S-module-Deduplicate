@@ -1,0 +1,241 @@
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+#
+# da <Daniel.fr@Berthereau.net>, 2022.
+# Daniel Berthereau <Daniel.fr@Berthereau.net>, 2022.
+msgid ""
+msgstr ""
+"Project-Id-Version: unnamed project\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-12-19 00:00+0000\n"
+"PO-Revision-Date: 2022-12-19 00:00+0000\n"
+"Last-Translator: Daniel Berthereau <Daniel.fr@Berthereau.net>\n"
+"Language-Team: French <kde-i18n-doc@kde.org>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.4.2\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: src/Generic/AbstractModule.php:80 src/Generic/AbstractModule.php:774
+#, php-format
+msgid "This module requires the module \"%s\"."
+msgstr "Ce module requiert le module « %s »."
+
+#: src/Generic/AbstractModule.php:87
+#, php-format
+msgid "This module requires modules \"%s\"."
+msgstr "Ce module requiert les modules \"%s\"."
+
+#: src/Generic/AbstractModule.php:94
+msgid "This module has resources that cannot be installed."
+msgstr "Ce module a des ressources qui ne peuvent pas être installées."
+
+#: src/Generic/AbstractModule.php:101
+msgid ""
+"This module cannot install its tables, because they exist already. Try to "
+"remove them first."
+msgstr ""
+"Ce module ne peut pas installer ses tables car elles existent déjà. Essayez "
+"de les supprimer manuellement."
+
+#: src/Generic/AbstractModule.php:362
+#, php-format
+msgid "The module removed tables \"%s\" from a previous broken install."
+msgstr ""
+"Le module a supprimé les tables « %s » depuis une installation échouée."
+
+#: src/Generic/AbstractModule.php:769
+#, php-format
+msgid "This module requires the module \"%1$s\", version %2$s or above."
+msgstr "Ce module requiert le module « %1$s », version %2$s ou supérieure."
+
+#: src/Generic/AbstractModule.php:866
+#, php-format
+msgid ""
+"The module \"%s\" was automatically deactivated because the dependencies are "
+"unavailable."
+msgstr ""
+"Le module « %s » a été automatiquement désactivé car ses dépendances ne sont "
+"plus disponibles."
+
+#: view/deduplicate/index/index.phtml:31
+msgid "Deduplicate resources"
+msgstr "Dédoublonner les ressources"
+
+#: view/deduplicate/index/index.phtml:40
+#, php-format
+msgid ""
+"To refine the list, select a property and a value or select %sresources%s "
+"directly."
+msgstr ""
+"Pour affiner la liste, choisir une propriété et une valeur ou sélectionner "
+"les %sressources%s directement."
+
+#: view/deduplicate/index/index.phtml:46
+#, php-format
+msgid ""
+"To get a list of resources to merge, select a property and a value or go to "
+"%sresources%s to filter them."
+msgstr ""
+"Pour obtenir une liste de ressources à fusionner, choisir une propriété et "
+"une valeur ou parcourir les %sressources%s pour les filtrer."
+
+#: view/deduplicate/index/index.phtml:56
+msgid "The query returned a single result."
+msgstr "La requête a retourné un seul résultat."
+
+#: view/deduplicate/index/index.phtml:60
+#, php-format
+msgid ""
+"The search returned %1$d resources. Only %2$d first ones are displayed. "
+"Other ones won’t be processed."
+msgstr ""
+"La recherche a retourné %1$d ressources. Seuls les %2$d premiers sont "
+"affichés."
+
+#: view/deduplicate/index/index.phtml:73
+msgid "Select the resource to keep and the ones to merge."
+msgstr "Choisir la ressource à conserver et celles à fusionner."
+
+#: view/deduplicate/index/index.phtml:75
+msgid ""
+"Merge mode: remove all duplicate resources and update all linked resources "
+"to the one kept."
+msgstr ""
+"Mode de fusion : supprimer les ressources en doublon et mettre à jour les "
+"ressources liées vers la ressource conservée."
+
+#: view/deduplicate/index/index.phtml:85
+msgid "Select resource to keep"
+msgstr "Choisir la ressource à conserver"
+
+#: view/deduplicate/index/index.phtml:85
+msgid "Keep"
+msgstr "Conserver"
+
+#: view/deduplicate/index/index.phtml:86
+msgid "Select resource to merge"
+msgstr "Choisir la ressource à fusionner"
+
+#: view/deduplicate/index/index.phtml:86
+msgid "Merge"
+msgstr "Fusionner"
+
+#: src/Job/DeduplicateResources.php:37 src/Job/DeduplicateResources.php:56
+msgid "There is no resource to merge."
+msgstr "Aucune ressource à fusionner."
+
+#: src/Job/DeduplicateResources.php:45
+#, php-format
+msgid "There is no resource #%d to merge."
+msgstr "Il n’y a aucune ressource #%d à fusionner."
+
+#: src/Job/DeduplicateResources.php:97
+#, php-format
+msgid "%d resources have been merged inside resource #%d."
+msgstr "%d ressources ont été fusionnées dans la ressource #%d."
+
+#: src/Form/DeduplicateForm.php:18
+msgid "Property to deduplicate on"
+msgstr "Propriété à dédoublonner"
+
+#: src/Form/DeduplicateForm.php:27
+msgid "Select a property…"
+msgstr "Choisir une propriété…"
+
+#: src/Form/DeduplicateForm.php:34
+msgid "Value"
+msgstr "Valeur"
+
+#: src/Form/DeduplicateForm.php:44
+msgid "Heuristic to find similar values"
+msgstr "Heuristique pour identifier les valeurs similaires"
+
+#: src/Form/DeduplicateForm.php:45
+msgid "Different algorithms can be used to detect \"similar\" values."
+msgstr ""
+"Différents algorithmes peuvent être utilisés pour détecter les valeurs "
+"« similaires »."
+
+#: src/Form/DeduplicateForm.php:48
+msgid "Equal"
+msgstr "Égal"
+
+#: src/Form/DeduplicateForm.php:49
+msgid "Similar text"
+msgstr "Texte similaire"
+
+#: src/Form/DeduplicateForm.php:50
+msgid "Levenshtein distance"
+msgstr "Distance de Levenshtein"
+
+#: src/Form/DeduplicateForm.php:51
+msgid "Metaphone"
+msgstr "Metaphone"
+
+#: src/Form/DeduplicateForm.php:52
+msgid "Soundex"
+msgstr "Soundex"
+
+#: src/Controller/IndexController.php:43
+msgid "property"
+msgstr "propriété"
+
+#: src/Controller/IndexController.php:51
+msgid "A value to deduplicate on is required."
+msgstr "Une valeur sur laquelle dédoublonner est nécessaire."
+
+#: src/Controller/IndexController.php:54
+msgid "A property is required to search on."
+msgstr "Une propriété sur laquelle chercher est nécessaire."
+
+#: src/Controller/IndexController.php:59
+#, php-format
+msgid "The string is too long (more than %d characters)."
+msgstr "La chaîne est trop longue (plus de %d caractères)."
+
+#: src/Controller/IndexController.php:88
+msgid "The query does not find selected resource ids."
+msgstr "La requête n’a pas trouvé les ressources sélectionnées."
+
+#: src/Controller/IndexController.php:101
+msgid "The query returned no resource."
+msgstr "La requête n’a retourné aucune ressource."
+
+#: src/Controller/IndexController.php:115
+#, php-format
+msgid ""
+"There are too many similar values near \"%s\". You may filter resources "
+"first."
+msgstr ""
+"Il y a trop de valeurs proches de « %s ». Vous pouvez filtrer vos ressources "
+"d’abord."
+
+#: src/Controller/IndexController.php:118
+#, php-format
+msgid "There is no existing value for property \"%1$s\" near \"%2$s\"."
+msgstr ""
+"Il n’y a aucune valeur pour la propriété « %1$s » qui soit proche de "
+"« %2$s »."
+
+#: src/Controller/IndexController.php:149
+msgid "resource_id"
+msgstr "resource_id"
+
+#: src/Controller/IndexController.php:160
+msgid "Some merged resources do not exist."
+msgstr "Certaines ressources fusionnées n’existent pas."
+
+#: src/Controller/IndexController.php:196
+#, php-format
+msgid ""
+"Processing deduplication in background (job %1$s#%2$d%3$s, %4$slogs%3$s)."
+msgstr ""
+"Dédoublonnage lancé en arrière-plan (tâche %1$s#%2$d%3$s, %4$sjournaux%3$s)."
+
+#: config/module.config.php:40
+msgid "Deduplicate"
+msgstr "Dédoublonnage"

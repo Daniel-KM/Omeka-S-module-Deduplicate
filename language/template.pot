@@ -1,0 +1,219 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-12-19 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/Generic/AbstractModule.php:80 src/Generic/AbstractModule.php:774
+#, php-format
+msgid "This module requires the module \"%s\"."
+msgstr ""
+
+#: src/Generic/AbstractModule.php:87
+#, php-format
+msgid "This module requires modules \"%s\"."
+msgstr ""
+
+#: src/Generic/AbstractModule.php:94
+msgid "This module has resources that cannot be installed."
+msgstr ""
+
+#: src/Generic/AbstractModule.php:101
+msgid ""
+"This module cannot install its tables, because they exist already. Try to "
+"remove them first."
+msgstr ""
+
+#: src/Generic/AbstractModule.php:362
+#, php-format
+msgid "The module removed tables \"%s\" from a previous broken install."
+msgstr ""
+
+#: src/Generic/AbstractModule.php:769
+#, php-format
+msgid "This module requires the module \"%1$s\", version %2$s or above."
+msgstr ""
+
+#: src/Generic/AbstractModule.php:866
+#, php-format
+msgid ""
+"The module \"%s\" was automatically deactivated because the dependencies are "
+"unavailable."
+msgstr ""
+
+#: view/deduplicate/index/index.phtml:31
+msgid "Deduplicate resources"
+msgstr ""
+
+#: view/deduplicate/index/index.phtml:40
+#, php-format
+msgid ""
+"To refine the list, select a property and a value or select %sresources%s "
+"directly."
+msgstr ""
+
+#: view/deduplicate/index/index.phtml:46
+#, php-format
+msgid ""
+"To get a list of resources to merge, select a property and a value or go to "
+"%sresources%s to filter them."
+msgstr ""
+
+#: view/deduplicate/index/index.phtml:56
+msgid "The query returned a single result."
+msgstr ""
+
+#: view/deduplicate/index/index.phtml:60
+#, php-format
+msgid ""
+"The search returned %1$d resources. Only %2$d first ones are displayed. "
+"Other ones won’t be processed."
+msgstr ""
+
+#: view/deduplicate/index/index.phtml:73
+msgid "Select the resource to keep and the ones to merge."
+msgstr ""
+
+#: view/deduplicate/index/index.phtml:75
+msgid ""
+"Merge mode: remove all duplicate resources and update all linked resources "
+"to the one kept."
+msgstr ""
+
+#: view/deduplicate/index/index.phtml:85
+msgid "Select resource to keep"
+msgstr ""
+
+#: view/deduplicate/index/index.phtml:85
+msgid "Keep"
+msgstr ""
+
+#: view/deduplicate/index/index.phtml:86
+msgid "Select resource to merge"
+msgstr ""
+
+#: view/deduplicate/index/index.phtml:86
+msgid "Merge"
+msgstr ""
+
+#: src/Job/DeduplicateResources.php:37 src/Job/DeduplicateResources.php:56
+msgid "There is no resource to merge."
+msgstr ""
+
+#: src/Job/DeduplicateResources.php:45
+#, php-format
+msgid "There is no resource #%d to merge."
+msgstr ""
+
+#: src/Job/DeduplicateResources.php:97
+#, php-format
+msgid "%d resources have been merged inside resource #%d."
+msgstr ""
+
+#: src/Form/DeduplicateForm.php:18
+msgid "Property to deduplicate on"
+msgstr ""
+
+#: src/Form/DeduplicateForm.php:27
+msgid "Select a property…"
+msgstr ""
+
+#: src/Form/DeduplicateForm.php:34
+msgid "Value"
+msgstr ""
+
+#: src/Form/DeduplicateForm.php:44
+msgid "Heuristic to find similar values"
+msgstr ""
+
+#: src/Form/DeduplicateForm.php:45
+msgid "Different algorithms can be used to detect \"similar\" values."
+msgstr ""
+
+#: src/Form/DeduplicateForm.php:48
+msgid "Equal"
+msgstr ""
+
+#: src/Form/DeduplicateForm.php:49
+msgid "Similar text"
+msgstr ""
+
+#: src/Form/DeduplicateForm.php:50
+msgid "Levenshtein distance"
+msgstr ""
+
+#: src/Form/DeduplicateForm.php:51
+msgid "Metaphone"
+msgstr ""
+
+#: src/Form/DeduplicateForm.php:52
+msgid "Soundex"
+msgstr ""
+
+#: src/Controller/IndexController.php:43
+msgid "property"
+msgstr ""
+
+#: src/Controller/IndexController.php:51
+msgid "A value to deduplicate on is required."
+msgstr ""
+
+#: src/Controller/IndexController.php:54
+msgid "A property is required to search on."
+msgstr ""
+
+#: src/Controller/IndexController.php:59
+#, php-format
+msgid "The string is too long (more than %d characters)."
+msgstr ""
+
+#: src/Controller/IndexController.php:88
+msgid "The query does not find selected resource ids."
+msgstr ""
+
+#: src/Controller/IndexController.php:101
+msgid "The query returned no resource."
+msgstr ""
+
+#: src/Controller/IndexController.php:115
+#, php-format
+msgid ""
+"There are too many similar values near \"%s\". You may filter resources "
+"first."
+msgstr ""
+
+#: src/Controller/IndexController.php:118
+#, php-format
+msgid "There is no existing value for property \"%1$s\" near \"%2$s\"."
+msgstr ""
+
+#: src/Controller/IndexController.php:149
+msgid "resource_id"
+msgstr ""
+
+#: src/Controller/IndexController.php:160
+msgid "Some merged resources do not exist."
+msgstr ""
+
+#: src/Controller/IndexController.php:196
+#, php-format
+msgid ""
+"Processing deduplication in background (job %1$s#%2$d%3$s, %4$slogs%3$s)."
+msgstr ""
+
+#: config/module.config.php:40
+msgid "Deduplicate"
+msgstr ""
