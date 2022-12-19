@@ -7,6 +7,7 @@
  * @var array $query
  * @var \Omeka\Api\Representation\PropertyRepresentation $property
  * @var string $value
+ * @var string $method
  * @var int $totalResourcesQuery
  * @var int $totalResources
  */
@@ -67,6 +68,7 @@ $isPost = $property && strlen($value);
         <input type="hidden" name="resource_type" value="<?= $escapeAttr($resourceType) ?>"/>
         <input type="hidden" name="deduplicate_property" value="<?= $property ? $escapeAttr($property->term()) : '' ?>"/>
         <input type="hidden" name="deduplicate_value" value="<?= $escapeAttr($value) ?>"/>
+        <input type="hidden" name="method" value="<?= $escapeAttr($method) ?>"/>
         <p>
             <?= $translate('Select the resource to keep and the ones to merge:') ?>
         </p>

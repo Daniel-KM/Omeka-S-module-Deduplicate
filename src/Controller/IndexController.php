@@ -27,6 +27,7 @@ class IndexController extends AbstractActionController
             'query' => [],
             'property' => null,
             'value' => '',
+            'method' => null,
             'totalResourcesQuery' => null,
             'totalResources' => null,
         ];
@@ -108,7 +109,10 @@ class IndexController extends AbstractActionController
             }
 
             if (!$hasError) {
-                $nearValues = $this->near($value, $property->id(), $resourceType, $query);
+                $method = $params['method'] ?? 'similar_text';
+                $args['method'] = $method;
+
+                $nearValues = $this->near($method, $value, $property->id(), $resourceType, $query);
                 if (is_null($nearValues)) {
                     $this->messenger()->addWarning(new Message('There are too many similar values near "%s". You may filter resources first.', $value)); // @translate
                     $hasError = true;
@@ -144,18 +148,18 @@ class IndexController extends AbstractActionController
                             $this->messenger()->addError(new Message('The resource %s does not exist.', $params['resource_id'])); // @translate
                             $hasError = true;
                         }
-                    }
 
-                    // Sometime, a 0 is included in the list of selected resource
-                    // ids and that may break advanced search.
+                        // Sometime, a 0 is included in the list of selected resource
+                        // ids and that may break advanced search.
 
-                    $resourcesMerged = [];
-                    if (!empty($params['resources_merged'])) {
-                        $params['resources_merged'] = array_unique(array_filter($params['resources_merged'])) ?: [];
-                        $resourcesMerged = $api->search($resourceType, ['id' => $params['resources_merged']], ['returnScalar' => 'id'])->getContent();
-                        if (!$resourcesMerged || count($resourcesMerged) !== count($params['resources_merged'])) {
-                            $this->messenger()->addError(new Message('Some merged resources do not exist.')); // @translate
-                            $hasError = true;
+                        $resourcesMerged = [];
+                        if (!empty($params['resources_merged'])) {
+                            $params['resources_merged'] = array_unique(array_filter($params['resources_merged'])) ?: [];
+                            $resourcesMerged = $api->search($resourceType, ['id' => $params['resources_merged']], ['returnScalar' => 'id'])->getContent();
+                            if (!$resourcesMerged || count($resourcesMerged) !== count($params['resources_merged'])) {
+                                $this->messenger()->addError(new Message('Some merged resources do not exist.')); // @translate
+                                $hasError = true;
+                            }
                         }
                     }
                 }
@@ -215,11 +219,12 @@ class IndexController extends AbstractActionController
      * There is no simple way to do a search "similar" in mysql and doctrine
      * doesn't implement "soundex" easily, so process via php.
      */
-    protected function near(?string $value, $propertyId, string $resourceType, array $query): array
+    protected function near(string $method, ?string $value, $propertyId, string $resourceType, array $query): array
     {
         if (is_null($value) || !$propertyId) {
             return [];
         }
+
         $query['property'][] = [
             'property' => $propertyId,
             'type' => 'ex',
@@ -228,6 +233,14 @@ class IndexController extends AbstractActionController
         if (!count($filteredIds)) {
             return [];
         }
+
+        $methods = [
+            'similar_text',
+            'levenshtein',
+            'metaphone',
+            'soundex',
+        ];
+        $method = in_array($method, $methods) ? $method : 'similar_text';
 
         /** @var \Doctrine\DBAL\Connection $connection */
         $connection = $this->api()->read('vocabularies', 1)->getContent()->getServiceLocator()->get('Omeka\Connection');
@@ -238,6 +251,7 @@ class IndexController extends AbstractActionController
             ->from('value', 'value')
             ->where($expr->eq('value.property_id', ':property_id'))
             ->andWhere($expr->in('value.resource_id', ':resource_ids'))
+            ->andWhere($expr->lte('LENGTH(value.value)', 255))
             ->addOrderBy('value.value', 'asc')
         ;
         $bind = [
@@ -253,11 +267,40 @@ class IndexController extends AbstractActionController
         $result = [];
         $percent = null;
         $lowerValue = mb_strtolower($value);
-        foreach ($allValues as $oneValue) {
-            similar_text($lowerValue, mb_strtolower($oneValue), $percent);
-            if ($percent > 66) {
-                $result[] = $oneValue;
-            }
+
+        switch ($method) {
+            default:
+            case 'similar_text':
+                foreach ($allValues as $oneValue) {
+                    similar_text($lowerValue, mb_strtolower($oneValue), $percent);
+                    if ($percent > 66) {
+                        $result[] = $oneValue;
+                    }
+                }
+                break;
+            case 'levenshtein':
+                foreach ($allValues as $oneValue) {
+                    if (levenshtein($lowerValue, mb_strtolower($oneValue)) < 10) {
+                        $result[] = $oneValue;
+                    }
+                }
+                break;
+            case 'metaphone':
+                $code = metaphone($lowerValue);
+                foreach ($allValues as $oneValue) {
+                    if ($code === metaphone(mb_strtolower($oneValue))) {
+                        $result[] = $oneValue;
+                    }
+                }
+                break;
+            case 'soundex':
+                $code = soundex($lowerValue);
+                foreach ($allValues as $oneValue) {
+                    if ($code === soundex(mb_strtolower($oneValue))) {
+                        $result[] = $oneValue;
+                    }
+                }
+                break;
         }
 
         return $result;

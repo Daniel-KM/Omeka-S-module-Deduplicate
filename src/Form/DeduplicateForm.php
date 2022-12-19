@@ -38,6 +38,24 @@ class DeduplicateForm extends Form
                     'required' => true,
                 ],
             ])
+            ->add([
+                'name' => 'method',
+                'type' => Element\Radio::class,
+                'options' => [
+                    'label' => 'Heuristic to find similar values', // @translate
+                    'value_options' => [
+                        'similar_text' => 'Similar text', // @translate
+                        'levenshtein' => 'Levenshtein', // @translate
+                        'metaphone' => 'Metaphone', // @translate
+                        'soundex' => 'Soundex', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'deduplicate-method',
+                    'required' => false,
+                    'value' => 'similar_text',
+                ],
+            ])
             /*
             ->add([
                 'name' => 'resource_type',
@@ -47,6 +65,14 @@ class DeduplicateForm extends Form
                 ],
             ])
             */
+        ;
+
+        $inputFilter = $this->getInputFilter();
+        $inputFilter
+            ->add([
+                'name' => 'method',
+                'required' => false,
+            ])
         ;
     }
 }
