@@ -8,8 +8,6 @@ use Omeka\Stdlib\Message;
 
 class IndexController extends AbstractActionController
 {
-    const MAX_TO_MERGE = \Omeka\Stdlib\Paginator::PER_PAGE;
-
     public function indexAction()
     {
         /** @var \Deduplicate\Form\DeduplicateForm $form */
@@ -135,8 +133,7 @@ class IndexController extends AbstractActionController
                     }
                 }
                 if (!$hasError) {
-                    // $queryResources['limit'] = $this->settings()->get('pagination_per_page') ?: \Omeka\Stdlib\Paginator::PER_PAGE;
-                    $queryResources['limit'] = self::MAX_TO_MERGE;
+                    $queryResources['limit'] = $this->settings()->get('pagination_per_page') ?: \Omeka\Stdlib\Paginator::PER_PAGE;
 
                     $response = $api->search($resourceType, $queryResources);
                     $args['resources'] = $response->getContent();
@@ -225,7 +222,7 @@ class IndexController extends AbstractActionController
      */
     protected function near(string $method, ?string $value, $propertyId, string $resourceType, array $query): array
     {
-        if (is_null($value) || !$propertyId) {
+        if (is_null($value) || !strlen($value) || !$propertyId) {
             return [];
         }
 

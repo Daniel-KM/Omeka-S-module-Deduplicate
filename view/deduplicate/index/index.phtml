@@ -12,14 +12,14 @@
  * @var int $totalResources
  */
 
-// $maxResources = $this->setting('pagination_per_page') ?: \Omeka\Stdlib\Paginator::PER_PAGE;
-$maxResources = \Deduplicate\Controller\IndexController::MAX_TO_MERGE;
-
 $plugins = $this->getHelperPluginManager();
 $url = $plugins->get('url');
+$setting = $plugins->get('setting');
 $escape = $plugins->get('escapeHtml');
 $translate = $plugins->get('translate');
 $escapeAttr = $plugins->get('escapeHtmlAttr');
+
+$maxResources = $setting('pagination_per_page') ?: \Omeka\Stdlib\Paginator::PER_PAGE;
 
 $this->htmlElement('body')->appendAttribute('class', 'deduplicate resources show');
 
