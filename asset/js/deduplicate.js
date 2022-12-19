@@ -53,23 +53,6 @@ Omeka.deduplicateManageSelectedActions = function() {
             Omeka.deduplicateManageSelectedActions();
         });
 
-        // Prepare the form for the deduplication process.
-
-        batchSelect.on('change', function() {
-            const val = $(this).find(':selected').val();
-            if (val === 'deduplicate_selected' || val === 'deduplicate_all') {
-                if (!$('#deduplicate').length) {
-                    batchSelect.after(`<div id="deduplicate">
-    <span>${Omeka.jsTranslate('Deduplicate on:')}</span>
-    <input type="number" name="deduplicate_property" id="deduplicate-property" required="required" class="required" placeholder="${Omeka.jsTranslate('Property id')}"/>
-    <input type="text" name="deduplicate_value" id="deduplicate-value" required="required" class="required" placeholder="${Omeka.jsTranslate('Value')}"/>
-</div>`);
-                }
-            } else {
-                $('#deduplicate').remove();
-            }
-        });
-
     });
 
 }(window.jQuery, window, document));

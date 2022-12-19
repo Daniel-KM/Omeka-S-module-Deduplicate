@@ -57,9 +57,7 @@ return [
         ],
     ],
     'js_translate_strings' => [
-        'Deduplicate on:', // @translate
-        'Property id', // @translate
-        'Value', // @translate
+        'Go', // @translate
     ],
     'deduplicate' => [
     ],
