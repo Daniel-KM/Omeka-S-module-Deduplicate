@@ -168,7 +168,32 @@ class IndexController extends AbstractActionController
             return $view;
         }
 
+        // The process may be heavy with many linked resources, so use a job.
         if ($resourceId && $resourcesMerged) {
+            $jobParams = [
+                'resourceId' => $resourceId,
+                'resourcesMerged' => array_values($resourcesMerged),
+            ];
+            $job = $this->jobDispatcher()->dispatch(\Deduplicate\Job\DeduplicateResources::class, $jobParams);
+            $urlHelper = $this->url();
+            $message = new Message(
+                'Processing deduplication in background (job %1$s#%2$d%3$s, %4$slogs%3$s).', // @translate
+                sprintf(
+                    '<a href="%s">',
+                    htmlspecialchars($urlHelper->fromRoute('admin/id', ['controller' => 'job', 'id' => $job->getId()]))
+                ),
+                $job->getId(),
+                '</a>',
+                sprintf(
+                    '<a href="%s">',
+                    // Check if module Log is enabled (avoid issue when disabled).
+                    htmlspecialchars(class_exists(\Log\Stdlib\PsrMessage::class)
+                        ? $urlHelper->fromRoute('admin/log/default', [], ['query' => ['job_id' => $job->getId()]])
+                        : $urlHelper->fromRoute('admin/id', ['controller' => 'job', 'id' => $job->getId(), 'action' => 'log'])
+                ))
+            );
+            $message->setEscapeHtml(false);
+            $this->messenger()->addSuccess($message);
             return $view;
         }
 
