@@ -3,6 +3,37 @@
 namespace Deduplicate;
 
 return [
+    'view_manager' => [
+        'template_path_stack' => [
+            dirname(__DIR__) . '/view',
+        ],
+    ],
+    'controllers' => [
+        'invokables' => [
+            'Deduplicate\Controller\Index' => Controller\IndexController::class,
+        ],
+    ],
+    // TODO Remove these routes and use main admin/default.
+    'router' => [
+        'routes' => [
+            'admin' => [
+                'child_routes' => [
+                    'deduplicate' => [
+                        'type' => \Laminas\Router\Http\Literal::class,
+                        'options' => [
+                            'route' => '/deduplicate',
+                            'defaults' => [
+                                '__NAMESPACE__' => 'Deduplicate\Controller',
+                                '__ADMIN__' => true,
+                                'controller' => 'Index',
+                                'action' => 'index',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
+    ],
     'translator' => [
         'translation_file_patterns' => [
             [

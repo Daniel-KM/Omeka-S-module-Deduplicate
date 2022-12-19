@@ -1,0 +1,83 @@
+<?php
+/**
+ * @var \Laminas\View\Renderer\PhpRenderer $this
+ * @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation[] $resources
+ * @var \Deduplicate\Form\DeduplicateForm $form
+ * @var string $resourceType
+ * @var array $query
+ * @var \Omeka\Api\Representation\PropertyRepresentation $property
+ * @var string $value
+ * @var int $totalResourcesQuery
+ * @var int $totalResources
+ */
+
+$maxResources = $this->setting('pagination_per_page') ?: \Omeka\Stdlib\Paginator::PER_PAGE;
+
+$plugins = $this->getHelperPluginManager();
+$escape = $plugins->get('escapeHtml');
+$translate = $plugins->get('translate');
+
+$this->htmlElement('body')->appendAttribute('class', 'deduplicate resources show');
+
+$form->prepare();
+
+$isPost = $property && strlen($value);
+?>
+
+<?= $this->pageTitle($translate('Deduplicate resources')) ?>
+
+<?php if ($query): ?>
+
+    <p class="explanation">
+        <?= sprintf('The query filtering resources returned %d resources.', $totalResourcesQuery) ?>
+    </p>
+
+<?php endif; ?>
+
+<?= $this->form($form); ?>
+
+<?php if ($isPost && !$totalResources): ?>
+    <p class="explanation">
+        <?= sprintf($translate('The query returned no results.')) ?>
+    </p>
+<?php else: ?>
+    <?php if ($totalResources === 1): ?>
+    <p class="explanation">
+        <?= sprintf($translate('The query returned a single result.')) ?>
+    </p>
+    <?php elseif ($totalResources > $maxResources): ?>
+    <p class="explanation">
+        <?= $escape(sprintf($translate('The search returned %1$d resources. Only %2$d first ones are displayed. Other ones won’t be processed.'), $totalResources, $maxResources)) ?>
+    </p>
+    <?php endif; ?>
+
+    <?php foreach ($resources as $resource): ?>
+
+    <hr/>
+
+    <?= $resource->linkPretty() ?>
+
+    <div id="item-metadata" class="active section">
+        <?php if ($resource->resourceTemplate()): ?>
+            <div class="meta-group">
+                <h4><?= $translate('Template');?></h4>
+                <div class="value"><?= $escape($translate($resource->resourceTemplate()->label())) ?></div>
+            </div>
+        <?php endif; ?>
+        <?php if ($resource->resourceClass()): ?>
+            <div class="meta-group">
+                <h4><?= $translate('Class') ?></h4>
+                <div class="value"><?= $escape($translate($resource->resourceClass()->label())) ?></div>
+            </div>
+        <?php endif; ?>
+        <?= $resource->displayValues() ?>
+    </div>
+
+    <?php endforeach; ?>
+
+<?php endif; ?>
+
+<div id="page-actions">
+    <?= $this->cancelButton() ?>
+    <button type="submit" name="deduplicate_all" form="deduplicateform"><?= $escape('Search') ?></button>
+</div>
