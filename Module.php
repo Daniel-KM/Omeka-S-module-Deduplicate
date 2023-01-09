@@ -4,7 +4,7 @@
  *
  * Merge duplicated resources.
  *
- * Copyright Daniel Berthereau, 2022-2023
+ * Copyright Daniel Berthereau, 2023-2023
  *
  * This software is governed by the CeCILL license under French law and abiding
  * by the rules of distribution of free software.  You can use, modify and/ or
@@ -47,7 +47,7 @@ use Laminas\EventManager\SharedEventManagerInterface;
  *
  * Merge duplicated resources.
  *
- * @copyright Daniel Berthereau, 2022-2023
+ * @copyright Daniel Berthereau, 2023-2023
  * @license http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt
  */
 class Module extends AbstractModule
