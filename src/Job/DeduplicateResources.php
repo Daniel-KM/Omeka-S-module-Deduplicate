@@ -85,7 +85,7 @@ class DeduplicateResources extends AbstractJob
                         $newValues[$term][] = $newValue;
                     }
                 }
-                $api->update($linkedResourceType, $linkedResourceId, $newValues, [
+                $api->update($linkedResourceType, $linkedResourceId, $newValues, [], [
                     'isPartial' => true,
                 ]);
             }
