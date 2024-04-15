@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-19 00:00+0000\n"
+"POT-Creation-Date: 2024-04-15 00:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,41 +17,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/Generic/AbstractModule.php:80 src/Generic/AbstractModule.php:774
+#: Module.php:67
 #, php-format
-msgid "This module requires the module \"%s\"."
-msgstr ""
-
-#: src/Generic/AbstractModule.php:87
-#, php-format
-msgid "This module requires modules \"%s\"."
-msgstr ""
-
-#: src/Generic/AbstractModule.php:94
-msgid "This module has resources that cannot be installed."
-msgstr ""
-
-#: src/Generic/AbstractModule.php:101
-msgid ""
-"This module cannot install its tables, because they exist already. Try to "
-"remove them first."
-msgstr ""
-
-#: src/Generic/AbstractModule.php:362
-#, php-format
-msgid "The module removed tables \"%s\" from a previous broken install."
-msgstr ""
-
-#: src/Generic/AbstractModule.php:769
-#, php-format
-msgid "This module requires the module \"%1$s\", version %2$s or above."
-msgstr ""
-
-#: src/Generic/AbstractModule.php:866
-#, php-format
-msgid ""
-"The module \"%s\" was automatically deactivated because the dependencies are "
-"unavailable."
+msgid "The module %1$s should be upgraded to version %2$s or later."
 msgstr ""
 
 #: view/deduplicate/index/index.phtml:31
@@ -109,18 +77,16 @@ msgstr ""
 msgid "Merge"
 msgstr ""
 
-#: src/Job/DeduplicateResources.php:37 src/Job/DeduplicateResources.php:56
+#: src/Job/DeduplicateResources.php:35 src/Job/DeduplicateResources.php:59
 msgid "There is no resource to merge."
 msgstr ""
 
 #: src/Job/DeduplicateResources.php:45
-#, php-format
-msgid "There is no resource #%d to merge."
+msgid "There is no resource #{resource_id} to merge."
 msgstr ""
 
-#: src/Job/DeduplicateResources.php:97
-#, php-format
-msgid "%d resources have been merged inside resource #%d."
+#: src/Job/DeduplicateResources.php:102
+msgid "{count} resources have been merged inside resource #{resource_id}."
 msgstr ""
 
 #: src/Form/DeduplicateForm.php:18
@@ -129,10 +95,6 @@ msgstr ""
 
 #: src/Form/DeduplicateForm.php:27
 msgid "Select a property…"
-msgstr ""
-
-#: src/Form/DeduplicateForm.php:34
-msgid "Value"
 msgstr ""
 
 #: src/Form/DeduplicateForm.php:44
@@ -163,55 +125,52 @@ msgstr ""
 msgid "Soundex"
 msgstr ""
 
-#: src/Controller/IndexController.php:43
-msgid "property"
+#: src/Controller/IndexController.php:44
+msgid "The property {property} does not exist."
 msgstr ""
 
-#: src/Controller/IndexController.php:51
+#: src/Controller/IndexController.php:55
 msgid "A value to deduplicate on is required."
 msgstr ""
 
-#: src/Controller/IndexController.php:54
+#: src/Controller/IndexController.php:60
 msgid "A property is required to search on."
 msgstr ""
 
-#: src/Controller/IndexController.php:59
-#, php-format
-msgid "The string is too long (more than %d characters)."
+#: src/Controller/IndexController.php:67
+msgid "The string is too long (more than {length} characters)."
 msgstr ""
 
-#: src/Controller/IndexController.php:88
+#: src/Controller/IndexController.php:99
 msgid "The query does not find selected resource ids."
 msgstr ""
 
-#: src/Controller/IndexController.php:101
+#: src/Controller/IndexController.php:114
 msgid "The query returned no resource."
 msgstr ""
 
-#: src/Controller/IndexController.php:115
-#, php-format
+#: src/Controller/IndexController.php:130
 msgid ""
-"There are too many similar values near \"%s\". You may filter resources "
+"There are too many similar values near \"{value}\". You may filter resources "
 "first."
 msgstr ""
 
-#: src/Controller/IndexController.php:118
-#, php-format
-msgid "There is no existing value for property \"%1$s\" near \"%2$s\"."
+#: src/Controller/IndexController.php:136
+msgid "There is no existing value for property {property} near \"{value}\"."
 msgstr ""
 
-#: src/Controller/IndexController.php:149
-msgid "resource_id"
+#: src/Controller/IndexController.php:170
+msgid "The resource #{resource_id} does not exist."
 msgstr ""
 
-#: src/Controller/IndexController.php:160
+#: src/Controller/IndexController.php:184
 msgid "Some merged resources do not exist."
 msgstr ""
 
-#: src/Controller/IndexController.php:196
-#, php-format
+#: src/Controller/IndexController.php:221
 msgid ""
-"Processing deduplication in background (job %1$s#%2$d%3$s, %4$slogs%3$s)."
+"Processing deduplication in background (job {link}#{job_id}{link_end}, "
+"{link_log}logs{link_end})."
 msgstr ""
 
 #: config/module.config.php:40

@@ -8,58 +8,21 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unnamed project\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-19 00:00+0000\n"
-"PO-Revision-Date: 2022-12-19 00:00+0000\n"
+"POT-Creation-Date: 2024-04-15 00:00+0000\n"
+"PO-Revision-Date: 2024-04-15 00:00+0000\n"
 "Last-Translator: Daniel Berthereau <Daniel.fr@Berthereau.net>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.4.2\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 3.2.2\n"
 
-#: src/Generic/AbstractModule.php:80 src/Generic/AbstractModule.php:774
+#: Module.php:67
 #, php-format
-msgid "This module requires the module \"%s\"."
-msgstr "Ce module requiert le module « %s »."
-
-#: src/Generic/AbstractModule.php:87
-#, php-format
-msgid "This module requires modules \"%s\"."
-msgstr "Ce module requiert les modules \"%s\"."
-
-#: src/Generic/AbstractModule.php:94
-msgid "This module has resources that cannot be installed."
-msgstr "Ce module a des ressources qui ne peuvent pas être installées."
-
-#: src/Generic/AbstractModule.php:101
-msgid ""
-"This module cannot install its tables, because they exist already. Try to "
-"remove them first."
-msgstr ""
-"Ce module ne peut pas installer ses tables car elles existent déjà. Essayez "
-"de les supprimer manuellement."
-
-#: src/Generic/AbstractModule.php:362
-#, php-format
-msgid "The module removed tables \"%s\" from a previous broken install."
-msgstr ""
-"Le module a supprimé les tables « %s » depuis une installation échouée."
-
-#: src/Generic/AbstractModule.php:769
-#, php-format
-msgid "This module requires the module \"%1$s\", version %2$s or above."
-msgstr "Ce module requiert le module « %1$s », version %2$s ou supérieure."
-
-#: src/Generic/AbstractModule.php:866
-#, php-format
-msgid ""
-"The module \"%s\" was automatically deactivated because the dependencies are "
-"unavailable."
-msgstr ""
-"Le module « %s » a été automatiquement désactivé car ses dépendances ne sont "
-"plus disponibles."
+msgid "The module %1$s should be upgraded to version %2$s or later."
+msgstr "Le module %1$s doit être mis à niveau à la version %2$s ou supérieure."
 
 #: view/deduplicate/index/index.phtml:31
 msgid "Deduplicate resources"
@@ -124,19 +87,18 @@ msgstr "Choisir la ressource à fusionner"
 msgid "Merge"
 msgstr "Fusionner"
 
-#: src/Job/DeduplicateResources.php:37 src/Job/DeduplicateResources.php:56
+#: src/Job/DeduplicateResources.php:35 src/Job/DeduplicateResources.php:59
 msgid "There is no resource to merge."
 msgstr "Aucune ressource à fusionner."
 
 #: src/Job/DeduplicateResources.php:45
-#, php-format
-msgid "There is no resource #%d to merge."
-msgstr "Il n’y a aucune ressource #%d à fusionner."
+msgid "There is no resource #{resource_id} to merge."
+msgstr "Il n’y a aucune ressource #{resource_id} à fusionner."
 
-#: src/Job/DeduplicateResources.php:97
-#, php-format
-msgid "%d resources have been merged inside resource #%d."
-msgstr "%d ressources ont été fusionnées dans la ressource #%d."
+#: src/Job/DeduplicateResources.php:102
+msgid "{count} resources have been merged inside resource #{resource_id}."
+msgstr ""
+"{count} ressources ont été fusionnées dans la ressource #{resource_id}."
 
 #: src/Form/DeduplicateForm.php:18
 msgid "Property to deduplicate on"
@@ -145,10 +107,6 @@ msgstr "Propriété à dédoublonner"
 #: src/Form/DeduplicateForm.php:27
 msgid "Select a property…"
 msgstr "Choisir une propriété…"
-
-#: src/Form/DeduplicateForm.php:34
-msgid "Value"
-msgstr "Valeur"
 
 #: src/Form/DeduplicateForm.php:44
 msgid "Heuristic to find similar values"
@@ -180,62 +138,100 @@ msgstr "Metaphone"
 msgid "Soundex"
 msgstr "Soundex"
 
-#: src/Controller/IndexController.php:43
-msgid "property"
-msgstr "propriété"
+#: src/Controller/IndexController.php:44
+msgid "The property {property} does not exist."
+msgstr "La propriété {property} n’existe pas."
 
-#: src/Controller/IndexController.php:51
+#: src/Controller/IndexController.php:55
 msgid "A value to deduplicate on is required."
 msgstr "Une valeur sur laquelle dédoublonner est nécessaire."
 
-#: src/Controller/IndexController.php:54
+#: src/Controller/IndexController.php:60
 msgid "A property is required to search on."
 msgstr "Une propriété sur laquelle chercher est nécessaire."
 
-#: src/Controller/IndexController.php:59
-#, php-format
-msgid "The string is too long (more than %d characters)."
-msgstr "La chaîne est trop longue (plus de %d caractères)."
+#: src/Controller/IndexController.php:67
+msgid "The string is too long (more than {length} characters)."
+msgstr "La chaîne est trop longue (plus de {length} caractères)."
 
-#: src/Controller/IndexController.php:88
+#: src/Controller/IndexController.php:99
 msgid "The query does not find selected resource ids."
 msgstr "La requête n’a pas trouvé les ressources sélectionnées."
 
-#: src/Controller/IndexController.php:101
+#: src/Controller/IndexController.php:114
 msgid "The query returned no resource."
 msgstr "La requête n’a retourné aucune ressource."
 
-#: src/Controller/IndexController.php:115
-#, php-format
+#: src/Controller/IndexController.php:130
 msgid ""
-"There are too many similar values near \"%s\". You may filter resources "
+"There are too many similar values near \"{value}\". You may filter resources "
 "first."
 msgstr ""
-"Il y a trop de valeurs proches de « %s ». Vous pouvez filtrer vos ressources "
-"d’abord."
+"Il y a trop de valeurs proches de « {value} ». Vous pouvez filtrer vos "
+"ressources d’abord."
 
-#: src/Controller/IndexController.php:118
-#, php-format
-msgid "There is no existing value for property \"%1$s\" near \"%2$s\"."
+#: src/Controller/IndexController.php:136
+msgid "There is no existing value for property {property} near \"{value}\"."
 msgstr ""
-"Il n’y a aucune valeur pour la propriété « %1$s » qui soit proche de "
-"« %2$s »."
+"Il n’y a aucune valeur pour la propriété {property} qui soit proche de "
+"« {value} »."
 
-#: src/Controller/IndexController.php:149
-msgid "resource_id"
-msgstr "resource_id"
+#: src/Controller/IndexController.php:170
+msgid "The resource #{resource_id} does not exist."
+msgstr "La ressource #{resource_id} n’existe pas."
 
-#: src/Controller/IndexController.php:160
+#: src/Controller/IndexController.php:184
 msgid "Some merged resources do not exist."
 msgstr "Certaines ressources fusionnées n’existent pas."
 
-#: src/Controller/IndexController.php:196
-#, php-format
+#: src/Controller/IndexController.php:221
 msgid ""
-"Processing deduplication in background (job %1$s#%2$d%3$s, %4$slogs%3$s)."
+"Processing deduplication in background (job {link}#{job_id}{link_end}, "
+"{link_log}logs{link_end})."
 msgstr ""
-"Dédoublonnage lancé en arrière-plan (tâche %1$s#%2$d%3$s, %4$sjournaux%3$s)."
+"Dédoublonnage lancé en arrière-plan (tâche {link}#{job_id}{link_end}, "
+"{link_log}journaux{link_end})."
 
 #: config/module.config.php:40
 msgid "Deduplicate"
 msgstr "Dédoublonnage"
+
+#, php-format
+#~ msgid "This module requires the module \"%s\"."
+#~ msgstr "Ce module requiert le module « %s »."
+
+#, php-format
+#~ msgid "This module requires modules \"%s\"."
+#~ msgstr "Ce module requiert les modules \"%s\"."
+
+#~ msgid "This module has resources that cannot be installed."
+#~ msgstr "Ce module a des ressources qui ne peuvent pas être installées."
+
+#~ msgid ""
+#~ "This module cannot install its tables, because they exist already. Try to "
+#~ "remove them first."
+#~ msgstr ""
+#~ "Ce module ne peut pas installer ses tables car elles existent déjà. "
+#~ "Essayez de les supprimer manuellement."
+
+#, php-format
+#~ msgid "The module removed tables \"%s\" from a previous broken install."
+#~ msgstr ""
+#~ "Le module a supprimé les tables « %s » depuis une installation échouée."
+
+#, php-format
+#~ msgid ""
+#~ "The module \"%s\" was automatically deactivated because the dependencies "
+#~ "are unavailable."
+#~ msgstr ""
+#~ "Le module « %s » a été automatiquement désactivé car ses dépendances ne "
+#~ "sont plus disponibles."
+
+#~ msgid "Value"
+#~ msgstr "Valeur"
+
+#~ msgid "property"
+#~ msgstr "propriété"
+
+#~ msgid "resource_id"
+#~ msgstr "resource_id"
