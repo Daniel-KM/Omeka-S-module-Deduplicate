@@ -29,9 +29,22 @@ La recherche de doublon peut se faire de façon stricte ou selon des heuristique
 Installation
 ------------
 
-Décompresser les fichiers et renommer le dossier du module `Deduplicate`.
+Consulter la documentation utilisateur pour [installer un module].
 
-Consulter la documentation utilisateur pour [installer un module] et suivez les
+Ce module requiert les modules [Common] et [Advanced Search], qui doivent être
+installés en premier.
+
+* À partir du zip
+
+Télécharger la dernière livraison [Deduplicate.zip] de la liste des livraisons
+et décompresser dans le dossier du module `Deduplicate`.
+
+* Depuis les source set pour le développement
+
+Si le module est installé depuis les sources, renommer le dossier du module en
+`Deduplicate`.
+
+Installer ensuite le module comme tous les autres modules Omeka et suivez les
 instructions.
 
 
@@ -128,6 +141,8 @@ avec [Greenstone].
 [Soundex]: https://fr.wikipedia.org/wiki/Soundex
 [Metaphone]: https://fr.wikipedia.org/wiki/Metaphone
 [installer un module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
+[Common]: https://gitlab.com/Daniel-KM/Omeka-S-module-Common
+[Advanced Search]: https://gitlab.com/Daniel-KM/Omeka-S-module-AdvancedSearch
 [questions du module]: https://gitlab.com/Daniel-KM/Omeka-S-module-Deduplicate/-/issues
 [CeCILL v2.1]: https://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
 [GNU/GPL]: https://www.gnu.org/licenses/gpl-3.0.html

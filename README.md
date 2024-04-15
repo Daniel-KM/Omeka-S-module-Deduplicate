@@ -29,10 +29,22 @@ The search of duplicate resources can be done strictly or with heuristics:
 Installation
 ------------
 
-Uncompress files and rename module folder `Deduplicate`.
+See general end user documentation for [installing a module].
 
-See general end user documentation for [Installing a module] and follow the
-config instructions.
+This module requires the modules [Common] and [Advanced Search], that should be
+installed first.
+
+* From the zip
+
+Download the last release [Deduplicate.zip] from the list of releases, and
+uncompress it in the `modules` directory.
+
+* From the source and for development
+
+If the module was installed from the source, rename the name of the folder of
+the module to `Deduplicate`.
+
+Then install it like any other Omeka module and follow the config instructions.
 
 
 Usage
@@ -109,7 +121,7 @@ of the CeCILL license and that you accept its terms.
 Copyright
 ---------
 
-* Copyright Daniel Berthereau, 2022-2023
+* Copyright Daniel Berthereau, 2022-2024
 
 These features were built for the future digital library [Manioc] of the
 Université des Antilles and Université de la Guyane, currently managed with
@@ -123,7 +135,9 @@ Université des Antilles and Université de la Guyane, currently managed with
 [Levenshtein distance]: https://en.wikipedia.org/wiki/Levenshtein_distance
 [Soundex]: https://en.wikipedia.org/wiki/Soundex
 [Metaphone]: https://en.wikipedia.org/wiki/Metaphone
-[Installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
+[installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
+[Common]: https://gitlab.com/Daniel-KM/Omeka-S-module-Common
+[Advanced Search]: https://gitlab.com/Daniel-KM/Omeka-S-module-AdvancedSearch
 [module issues]: https://gitlab.com/Daniel-KM/Omeka-S-module-Deduplicate/-/issues
 [CeCILL v2.1]: https://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
 [GNU/GPL]: https://www.gnu.org/licenses/gpl-3.0.html
