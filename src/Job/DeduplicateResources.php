@@ -3,7 +3,6 @@
 namespace Deduplicate\Job;
 
 use Omeka\Job\AbstractJob;
-use Omeka\Stdlib\Message;
 
 /**
  * Merge a list of resources into a resource and update linked resources.
@@ -15,12 +14,10 @@ class DeduplicateResources extends AbstractJob
         /**
          * @var \Laminas\Log\Logger $logger
          * @var \Omeka\Api\Manager $api
-         * @var \Doctrine\ORM\EntityManager $entityManager
          */
         $services = $this->getServiceLocator();
         $logger = $services->get('Omeka\Logger');
         $api = $services->get('Omeka\ApiManager');
-        $entityManager = $services->get('Omeka\EntityManager');
 
         $resourceId = (int) $this->getArg('resourceId');
         $resourcesMerged = $this->getArg('resourcesMerged', []);
@@ -34,7 +31,9 @@ class DeduplicateResources extends AbstractJob
         }
 
         if (!$resourceId || !$resourcesMerged) {
-            $logger->warn(new Message('There is no resource to merge.')); // @translate
+            $logger->warn(
+                'There is no resource to merge.' // @translate
+            );
             return;
         }
 
@@ -42,7 +41,10 @@ class DeduplicateResources extends AbstractJob
             /** @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource */
             $resource = $api->read('resources', $resourceId)->getContent();
         } catch (\Exception $e) {
-            $logger->warn(new Message('There is no resource #%d to merge.', $resourceId)); // @translate
+            $logger->warn(
+                'There is no resource #{resource_id} to merge.', // @translate
+                ['resource_id' => $resourceId]
+            );
             return;
         }
 
@@ -53,7 +55,9 @@ class DeduplicateResources extends AbstractJob
         $response = $api->search($resourceType, $query, ['returnScalar' => 'id']);
         $resourcesMerged = $response->getContent();
         if (!$resourcesMerged) {
-            $logger->warn(new Message('There is no resource to merge.')); // @translate
+            $logger->warn(
+                'There is no resource to merge.' // @translate
+            );
             return;
         }
 
@@ -94,6 +98,9 @@ class DeduplicateResources extends AbstractJob
         // Second, delete all merged resources.
         $api->batchDelete($resourceType, $resourcesMerged);
 
-        $logger->notice(new Message('%d resources have been merged inside resource #%d.', count($resourcesMerged), $resourceId)); // @translate
+        $logger->notice(
+            '{count} resources have been merged inside resource #{resource_id}.', // @translate
+            ['count' => count($resourcesMerged), 'resource_id' => $resourceId]
+        );
     }
 }

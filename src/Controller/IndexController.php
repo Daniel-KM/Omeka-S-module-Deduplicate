@@ -2,9 +2,9 @@
 
 namespace Deduplicate\Controller;
 
+use Common\Stdlib\PsrMessage;
 use Laminas\Mvc\Controller\AbstractActionController;
 use Laminas\View\Model\ViewModel;
-use Omeka\Stdlib\Message;
 
 class IndexController extends AbstractActionController
 {
@@ -40,7 +40,10 @@ class IndexController extends AbstractActionController
                 /** @var \Omeka\Api\Representation\PropertyRepresentation $property */
                 $property = $api->searchOne('properties', is_numeric($property) ? ['id' => (int) $property] : ['vocabulary_prefix' => strtok($property, ':'), 'local_name' => strtok(':')])->getContent();
                 if (!$property) {
-                    $this->messenger()->addError(new Message('The property "%s" does not exist.', $params['property'])); // @translate
+                    $this->messenger()->addError(new PsrMessage(
+                        'The property {property} does not exist.', // @translate
+                        ['property' => $params['property']]
+                    ));
                     $hasError = true;
                 }
             }
@@ -48,15 +51,22 @@ class IndexController extends AbstractActionController
 
             $value = $params['deduplicate_value'] ?? '';
             if ($property && !strlen($value)) {
-                $this->messenger()->addError('A value to deduplicate on is required.'); // @translate
+                $this->messenger()->addError(
+                    'A value to deduplicate on is required.' // @translate
+                );
                 $hasError = true;
             } elseif (!$property && strlen($value)) {
-                $this->messenger()->addError('A property is required to search on.'); // @translate
+                $this->messenger()->addError(
+                    'A property is required to search on.' // @translate
+                );
                 $hasError = true;
             }
 
             if (mb_strlen($value) > 255) {
-                $this->messenger()->addError('The string is too long (more than %d characters).', 255); // @translate
+                $this->messenger()->addError(
+                    'The string is too long (more than {length} characters).', // @translate
+                    ['length' => 255]
+                );
                 $hasError = true;
             }
 
@@ -85,7 +95,9 @@ class IndexController extends AbstractActionController
                 $resourceIds = $params['resource_ids'] ?? [];
                 $resourceIds = array_unique(array_filter($resourceIds));
                 if (!$resourceIds) {
-                    $this->messenger()->addError('The query does not find selected resource ids.'); // @translate
+                    $this->messenger()->addError(
+                        'The query does not find selected resource ids.' // @translate
+                    );
                     $hasError = true;
                 }
                 $query = ['id' => $resourceIds];
@@ -98,7 +110,9 @@ class IndexController extends AbstractActionController
                 $args['query'] = $query;
                 $args['totalResourcesQuery'] = $api->search($resourceType, $query + ['limit' => 0])->getTotalResults();
                 if (!$args['totalResourcesQuery']) {
-                    $this->messenger()->addError('The query returned no resource.'); // @translate
+                    $this->messenger()->addError(
+                        'The query returned no resource.' // @translate
+                    );
                     $hasError = true;
                 }
             }
@@ -112,10 +126,16 @@ class IndexController extends AbstractActionController
                 if ($property && strlen($value)) {
                     $nearValues = $this->near($method, $value, $property->id(), $resourceType, $query);
                     if (is_null($nearValues)) {
-                        $this->messenger()->addWarning(new Message('There are too many similar values near "%s". You may filter resources first.', $value)); // @translate
+                        $this->messenger()->addWarning(new PsrMessage(
+                            'There are too many similar values near "{value}". You may filter resources first.', // @translate
+                            ['value' => $value]
+                        ));
                         $hasError = true;
                     } elseif (!$nearValues) {
-                        $this->messenger()->addWarning(new Message('There is no existing value for property "%1$s" near "%2$s".', $property->term(), $value)); // @translate
+                        $this->messenger()->addWarning(new PsrMessage(
+                            'There is no existing value for property {property} near "{value}".', // @translate
+                            ['property' => $property->term(), 'value' => $value]
+                        ));
                         $hasError = true;
                     } else {
                         /* TODO Add a near query in Advanced Search via mysql.
@@ -146,7 +166,10 @@ class IndexController extends AbstractActionController
             if ($resourceId) {
                 $resource = $api->search($resourceType, ['id' => $resourceId])->getContent();
                 if (!$resource) {
-                    $this->messenger()->addError(new Message('The resource %s does not exist.', $params['resource_id'])); // @translate
+                    $this->messenger()->addError(new PsrMessage(
+                        'The resource #{resource_id} does not exist.', // @translate
+                        ['resource_id' => $params['resource_id']]
+                    ));
                     $hasError = true;
                 }
 
@@ -157,7 +180,9 @@ class IndexController extends AbstractActionController
                     $params['resources_merged'] = array_unique(array_filter($params['resources_merged'])) ?: [];
                     $resourcesMerged = $api->search($resourceType, ['id' => $params['resources_merged']], ['returnScalar' => 'id'])->getContent();
                     if (!$resourcesMerged || count($resourcesMerged) !== count($params['resources_merged'])) {
-                        $this->messenger()->addError(new Message('Some merged resources do not exist.')); // @translate
+                        $this->messenger()->addError(new PsrMessage(
+                            'Some merged resources do not exist.' // @translate
+                        ));
                         $hasError = true;
                     }
                 }
@@ -191,22 +216,23 @@ class IndexController extends AbstractActionController
                 'resourcesMerged' => array_values($resourcesMerged),
             ];
             $job = $this->jobDispatcher()->dispatch(\Deduplicate\Job\DeduplicateResources::class, $jobParams);
-            $urlHelper = $this->url();
-            $message = new Message(
-                'Processing deduplication in background (job %1$s#%2$d%3$s, %4$slogs%3$s).', // @translate
-                sprintf(
-                    '<a href="%s">',
-                    htmlspecialchars($urlHelper->fromRoute('admin/id', ['controller' => 'job', 'id' => $job->getId()]))
-                ),
-                $job->getId(),
-                '</a>',
-                sprintf(
-                    '<a href="%s">',
-                    // Check if module Log is enabled (avoid issue when disabled).
-                    htmlspecialchars(class_exists(\Log\Stdlib\PsrMessage::class)
-                        ? $urlHelper->fromRoute('admin/log/default', [], ['query' => ['job_id' => $job->getId()]])
-                        : $urlHelper->fromRoute('admin/id', ['controller' => 'job', 'id' => $job->getId(), 'action' => 'log'])
-                ))
+            $urlPlugin = $this->url();
+            $message = new PsrMessage(
+                'Processing deduplication in background (job {link}#{job_id}{link_end}, {link_log}logs{link_end}).', // @translate
+                [
+                    'link' => sprintf(
+                        '<a href="%s">',
+                        htmlspecialchars($urlPlugin->fromRoute('admin/id', ['controller' => 'job', 'id' => $job->getId()]))
+                    ),
+                    'job_id' => $job->getId(),
+                    'link_end' => '</a>',
+                    'link_log' => sprintf(
+                        '<a href="%1$s">',
+                        class_exists('Log\Module', false)
+                            ? $urlPlugin->fromRoute('admin/default', ['controller' => 'log'], ['query' => ['job_id' => $job->getId()]])
+                            : $urlPlugin->fromRoute('admin/id', ['controller' => 'job', 'action' => 'log', 'id' => $job->getId()])
+                    ),
+                ]
             );
             $message->setEscapeHtml(false);
             $this->messenger()->addSuccess($message);
