@@ -15,7 +15,6 @@ class IndexController extends AbstractActionController
         return $this->forward()->dispatch(__CLASS__, $params);
     }
 
-
     public function autoAction()
     {
         /** @var \Deduplicate\Form\DeduplicateAutoForm $form */
@@ -30,6 +29,7 @@ class IndexController extends AbstractActionController
             'query' => null,
             'method' => null,
             'duplicates' => [],
+            'skips' => [],
             'process' => '0',
         ]);
 
@@ -78,6 +78,7 @@ class IndexController extends AbstractActionController
             'query' => $query,
             'method' => $method,
             'duplicates' => $duplicates,
+            'skips' => [],
             'process' => (int) !empty($params['process']),
         ]);
 
@@ -85,7 +86,7 @@ class IndexController extends AbstractActionController
             $this->messenger()->addSuccess(new PsrMessage(
                 'There are no duplicates for the property {property}.', // @translate
                 ['property' => $property]
-             ));
+            ));
             $form->remove('process')->add($hiddenProcess);
             return $view;
         }
@@ -94,6 +95,30 @@ class IndexController extends AbstractActionController
             'There are {count} duplicates for the property {property}.', // @translate
             ['count' => count($duplicates), 'property' => $property]
         ));
+
+        // Check for duplicated resources with duplicated values.
+        $skips = [];
+        $rss = array_values($duplicates);
+        foreach ($rss as $k => $rs) {
+            foreach ($rs as $r) {
+                foreach ($rss as $kk => $rs2) {
+                    if ($kk > $k && in_array($r, $rs2)) {
+                        $skips[$r] = $r;
+                        break;
+                    }
+                }
+            }
+        }
+        $skips = array_values($skips);
+
+        $view->setVariable('skips', $skips);
+
+        if ($skips) {
+            $this->messenger()->addWarning(new PsrMessage(
+                '{count} resources are duplicated with several values and are kept: {resource_ids}', // @translate
+                ['count' => count($skips), 'resource_ids' => implode(', ', $skips)]
+            ));
+        }
 
         if (empty($params['process'])) {
             $this->messenger()->addWarning(
@@ -111,9 +136,14 @@ class IndexController extends AbstractActionController
         }
 
         $result = array_unique(array_merge(...$result));
+        $result = array_diff($result, $skips);
         sort($result);
 
-        if (count($result)) {
+        if (!count($result)) {
+            $this->messenger()->addWarning(
+                'No duplicates were removed, because duplicated resources have multiple duplicate values.' // @translate
+            );
+        } else {
             try {
                 $this->api()->batchDelete('items', $result);
                 $this->messenger()->addWarning(new PsrMessage(

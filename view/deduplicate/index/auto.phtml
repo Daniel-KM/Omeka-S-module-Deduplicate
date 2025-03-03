@@ -7,6 +7,7 @@
  * @var array $query
  * @var string $method
  * @var array $duplicates
+ * @var array $skips
  * @var int|bool $process
  */
 
@@ -71,6 +72,9 @@ $form->prepare();
 		<?php array_shift($resourceIds); ?>
         <?php foreach ($resourceIds as $resourceId): ?>
         , #<a href="<?= $baseUrl . $resourceId ?>"><?= $resourceId ?></a>
+        <?php if (in_array($resourceId, $skips)): ?>
+        <?= $translate('[skipped]') ?>
+        <?php endif; ?>
         <?php endforeach; ?>
 	</dd>
 	<?php endforeach; ?>
