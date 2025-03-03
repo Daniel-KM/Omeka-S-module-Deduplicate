@@ -8,9 +8,12 @@ Dédoublonnage (module pour Omeka S)
 See [English readme].
 
 [Dédoublonnage] est un module pour [Omeka S] qui permet de rechercher des
-ressources doublonnées en fonction d’une valeur et de les fusionner.
+ressources doublonnées en fonction d’une valeur et de les fusionner. La
+suppression des doublons peut également être automatique, seule la première
+ressource étant conservée.
 
-La recherche de doublon peut se faire de façon stricte ou selon des heuristiques :
+En mode manuel, la recherche de doublon peut se faire de façon stricte ou selon
+des heuristiques :
 
 - [Texte similaire]
   Le nombre de caractères correspondant est calculé en trouvant la première plus
@@ -51,6 +54,8 @@ instructions.
 Usage
 -----
 
+* Mode manuel
+
 - Cliquer sur « Dédoublonnage » dans le menu de gauche, sous les modules.
 - Choisir la propriété et la valeur à rechercher.
 - Cliquer sur « Rechercher ».
@@ -67,6 +72,14 @@ ces derniers, aller à la page parcourir et faire une recherche puis cliquer sur
 « Dédoublonner les ressources » dans le sélecteur de traitement en lot, ou choisir
 certaines ressources et choisir « Dédoublonner les ressources sélectionnées » et
 saisir une valeur.
+
+* Mode automatique
+
+Choisissez une propriété et cliquer sur "Rechercher", vérifiez les résultats
+puis cliquez sur "Dédoublonner".
+
+Les ressources avec plusieurs valeurs en doublon sont ignorées et ne peuvent pas
+être dédoublonnées.
 
 
 TODO
@@ -126,10 +139,10 @@ connaissance de la licence CeCILL et que vous en acceptez les termes.
 Copyright
 ---------
 
-* Copyright Daniel Berthereau, 2022-2023
+* Copyright Daniel Berthereau, 2022-2025
 
-Ces fonctionnalités sont destinées à la future bibliothèque numérique [Manioc]
-de l’Université des Antilles et de l’Université de la Guyane, actuellement gérée
+Ces fonctionnalités ont été conçues pour la bibliothèque numérique [Manioc] de
+l’Université des Antilles et de l’Université de la Guyane, anciennement gérée
 avec [Greenstone].
 
 

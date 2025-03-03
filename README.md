@@ -8,9 +8,11 @@ Deduplicate (module for Omeka S)
 Voir le [Lisez-moi] en français.
 
 [Deduplicate] is a module for [Omeka S] that allows to search for duplicate
-resources based on a value and to merge them.
+resources based on a value and to merge them. The deletion of duplicates can be
+done automatically, only the first resource is kept.
 
-The search of duplicate resources can be done strictly or with heuristics:
+In manual mode, the search of duplicate resources can be done strictly or with
+heuristics:
 
 - [Similar text]
   The number of matching characters is calculated by finding the longest first
@@ -50,6 +52,8 @@ Then install it like any other Omeka module and follow the config instructions.
 Usage
 -----
 
+* Manual mode
+
 - Click on "Deduplicate" in the left menu, under modules.
 - Select the property and fill the value to check.
 - Click "Submit".
@@ -65,6 +69,14 @@ To process other resource types than items or to filter the resources on which
 the search is done, go to a resource browse page and do a query then click on
 "Deduplicate resources" in the batch edit dropdown or select some resources and
 select "Deduplicate selected resources" and fill the form.
+
+* Automatic mode
+
+Select a property, then click on "Search", check results, and click on
+"Deduplicate".
+
+Resources with multiple duplicated values are skipped and cannot be
+deduplicated.
 
 
 TODO
@@ -121,10 +133,10 @@ of the CeCILL license and that you accept its terms.
 Copyright
 ---------
 
-* Copyright Daniel Berthereau, 2022-2024
+* Copyright Daniel Berthereau, 2022-2025
 
-These features were built for the future digital library [Manioc] of the
-Université des Antilles and Université de la Guyane, currently managed with
+These features were built for the digital library [Manioc] of the
+Université des Antilles and Université de la Guyane, previously managed with
 [Greenstone].
 
 
