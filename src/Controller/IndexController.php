@@ -284,7 +284,8 @@ class IndexController extends AbstractActionController
             ->from('value', 'value')
             ->where($expr->eq('value.property_id', ':property_id'))
             ->andWhere($expr->in('value.resource_id', ':resource_ids'))
-            ->andWhere($expr->lte('LENGTH(value.value)', 255))
+            // TODO What is the purpuse of this limit (for big values)? Once the value is specified, there is no issue.
+            // ->andWhere($expr->lte('LENGTH(value.value)', 255))
             ->addOrderBy('value.value', 'asc')
         ;
         $bind = [
