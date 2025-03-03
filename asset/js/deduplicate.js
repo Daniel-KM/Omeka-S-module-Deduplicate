@@ -27,6 +27,12 @@ Omeka.deduplicateManageSelectedActions = function() {
         batchSelect.append(
             $('<option></option>').val('deduplicate_all').html(Omeka.jsTranslate('Deduplicate all resources'))
         );
+        batchSelect.append(
+            $('<option class="batch-selected" disabled></option>').val('deduplicate_selected_auto').html(Omeka.jsTranslate('Deduplicate selected resources automatically'))
+        );
+        batchSelect.append(
+            $('<option></option>').val('deduplicate_all_auto').html(Omeka.jsTranslate('Deduplicate all resources automatically'))
+        );
 
         const batchActions = $('#batch-form .batch-actions');
         batchActions.append(
@@ -34,6 +40,12 @@ Omeka.deduplicateManageSelectedActions = function() {
         );
         batchActions.append(
             $('<input type="submit" class="deduplicate_all" formaction="deduplicate">').val(Omeka.jsTranslate('Go'))
+        );
+        batchActions.append(
+            $('<input type="submit" class="deduplicate_selected_auto" formaction="deduplicate/auto">').val(Omeka.jsTranslate('Go'))
+        );
+        batchActions.append(
+            $('<input type="submit" class="deduplicate_all_auto" formaction="deduplicate/auto">').val(Omeka.jsTranslate('Go'))
         );
 
         const resourceType = window.location.pathname.split('/').pop();

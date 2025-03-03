@@ -88,6 +88,10 @@ return [
         ],
     ],
     'js_translate_strings' => [
+        'Deduplicate all resources', // @translate
+        'Deduplicate all resources automatically', // @translate
+        'Deduplicate selected resources', // @translate
+        'Deduplicate selected resources automatically', // @translate
         'Go', // @translate
     ],
     'deduplicate' => [

@@ -56,15 +56,20 @@ class DeduplicateAutoForm extends Form
                     'value' => '0',
                 ],
             ])
-            /*
             ->add([
                 'name' => 'resource_type',
                 'type' => Element\Hidden::class,
                 'attributes' => [
-                    'value' => 'item',
+                    'value' => 'items',
                 ],
             ])
-            */
+            ->add([
+                'name' => 'query',
+                'type' => Element\Hidden::class,
+                'attributes' => [
+                    'value' => '[]',
+                ],
+            ])
         ;
     }
 }

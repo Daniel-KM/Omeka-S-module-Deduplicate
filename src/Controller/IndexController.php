@@ -22,12 +22,18 @@ class IndexController extends AbstractActionController
 
         $request = $this->getRequest();
 
+        $resourceType = 'items';
+        $method = 'equal';
+        $query = [];
+        $resourceIds = [];
+        $batch = null;
+
         $view = new ViewModel([
             'form' => $form,
-            'resourceType' => null,
+            'resourceType' => $resourceType,
             'property' => null,
-            'query' => null,
-            'method' => null,
+            'query' => $query,
+            'method' => $method,
             'duplicates' => [],
             'skips' => [],
             'process' => '0',
@@ -48,6 +54,42 @@ class IndexController extends AbstractActionController
         }
 
         $params = $request->getPost();
+
+        if (!empty($params['batch_action'])) {
+            $batch = strpos($params['batch_action'], 'selected') === false ? 'all' : 'selected';
+            if ($batch === 'all') {
+                $query = $params['query'] ?? '[]';
+                $query = array_diff_key(json_decode($query, true) ?: [], array_flip(['csrf', 'sort_by', 'sort_order', 'sort_by_default', 'sort_order_default', 'page', 'per_page', 'offset', 'limit']));
+            } else {
+                $resourceIds = $params['resource_ids'] ?? [];
+                $query = ['id' => array_unique(array_filter(array_map('intval', $resourceIds)))];
+            }
+            $resourceType = $params['resource_type'] ?? $resourceType;
+            $resourceType = $this->easyMeta()->resourceName($resourceType);
+            $form
+                ->remove('process')
+                ->add($hiddenProcess)
+                ->add([
+                    'name' => 'resource_type',
+                    'type' => \Laminas\Form\Element\Hidden::class,
+                    'attributes' => [
+                        'id' => 'deduplicate-resource-type',
+                        'value' => $resourceType,
+                    ],
+                ])
+                ->add([
+                    'name' => 'query',
+                    'type' => \Laminas\Form\Element\Hidden::class,
+                    'attributes' => [
+                        'id' => 'deduplicate-query',
+                        'value' => json_encode($query, 320),
+                    ],
+                ]);
+            return$view
+                ->setVariable('resource_type', $resourceType)
+                ->setVariable('query', $query);
+        }
+
         $form->setData($params);
         if (!$form->isValid()) {
             $this->messenger()->addErrors($form->getMessages());
@@ -65,9 +107,15 @@ class IndexController extends AbstractActionController
 
         unset($data['csrf']);
 
-        $resourceType = 'items';
-        $method = $data['method'] ?? 'equal';
-        $query = [];
+        if (empty($data['query']) || in_array($data['query'], ['[]', '{}'])) {
+            $query = [];
+        } elseif (mb_substr($data['query'], 0, 1) === '{') {
+            $query = json_decode($data['query'], true);
+        } else {
+            parse_str($data['query'], $query);
+        }
+
+        $resourceType = $data['resource_type'] ?? $resourceType;
 
         $duplicates = $this->getDuplicates($resourceType, $property, $method, $query);
 
@@ -146,6 +194,9 @@ class IndexController extends AbstractActionController
             return $view;
         }
 
+        // Prepare reload.
+        $form->get('process')->setValue('0');
+
         // Remove first resource and keep only the list of resources.
         // The results are already ordered by resource id.
         $result = [];
@@ -164,18 +215,20 @@ class IndexController extends AbstractActionController
             );
         } else {
             try {
-                $this->api()->batchDelete('items', $result);
-                $this->messenger()->addWarning(new PsrMessage(
-                    '{count} duplicates were removed.', // @translate
-                    ['count' => count($result)]
-                ));
+                $this->api()->batchDelete($resourceType, $result);
             } catch (\Exception $e) {
                 $this->messenger()->addWarning(new PsrMessage(
                     'An error occurred when deleting duplicates: {msg}.', // @translate
                     ['msg' => $e->getMessage()]
                 ));
+                return $view;
             }
         }
+
+        $this->messenger()->addWarning(new PsrMessage(
+            '{count} duplicates were removed.', // @translate
+            ['count' => count($result)]
+        ));
 
         return $view;
     }
@@ -258,12 +311,12 @@ class IndexController extends AbstractActionController
             $query = [];
 
             $batchAction = isset($params['deduplicate_selected']) || (isset($params['batch_action']) && $params['batch_action'] === 'deduplicate_selected')
-                ? 'deduplicate_selected'
-                : 'deduplicate_all';
+                ? 'selected'
+                : 'all';
 
-            if ($batchAction === 'deduplicate_selected') {
+            if ($batchAction === 'selected') {
                 $resourceIds = $params['resource_ids'] ?? [];
-                $resourceIds = array_unique(array_filter($resourceIds));
+                $resourceIds = array_unique(array_filter(array_map('intval', $resourceIds)));
                 if (!$resourceIds) {
                     $this->messenger()->addError(
                         'The query does not find selected resource ids.' // @translate
@@ -273,7 +326,7 @@ class IndexController extends AbstractActionController
                 $query = ['id' => $resourceIds];
             } else {
                 $query = $params['query'] ?? '[]';
-                $query = array_diff_key(json_decode($query, true) ?: [], array_flip(['csrf', 'sort_by', 'sort_order', 'page', 'per_page', 'offset', 'limit']));
+                $query = array_diff_key(json_decode($query, true) ?: [], array_flip(['csrf', 'sort_by', 'sort_order', 'sort_by_default', 'sort_order_default', 'page', 'per_page', 'offset', 'limit']));
             }
 
             if ($query) {
@@ -438,10 +491,18 @@ class IndexController extends AbstractActionController
             if (!$response->getTotalResults()) {
                 return [];
             }
-            $filteredIds = $response->getContent();
+            $filteredIds = array_map('intval', $response->getContent());
         }
 
         // Get all values for the specified resources.
+
+        $resourceTypesToTable = [
+            'items' => 'item',
+            'item-set' => 'item_set',
+            'item_sets' => 'item_set',
+            'media' => 'media',
+        ];
+        $table = $resourceTypesToTable[$resourceType] ?? $resourceType;
 
         /** @var \Doctrine\DBAL\Connection $connection */
         $connection = $this->api()->read('vocabularies', 1)->getContent()->getServiceLocator()->get('Omeka\Connection');
@@ -450,8 +511,7 @@ class IndexController extends AbstractActionController
         $qb
             ->distinct()
             ->from('value', 'value')
-            // TODO Only items are managed currently.
-            ->innerJoin('value', 'item', 'resource', 'resource.id = value.resource_id')
+            ->innerJoin('value', $table, 'resource', 'resource.id = value.resource_id')
             ->where($expr->eq('value.property_id', ':property_id'))
             ->andWhere($expr->neq('value.value', ':empty_string'))
             ->andWhere($expr->isNotNull('value.value'))
