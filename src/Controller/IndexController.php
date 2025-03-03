@@ -11,7 +11,7 @@ class IndexController extends AbstractActionController
     public function indexAction()
     {
         $params = $this->params()->fromRoute();
-        $params['action'] = 'manual';
+        $params['action'] = 'auto';
         return $this->forward()->dispatch(__CLASS__, $params);
     }
 

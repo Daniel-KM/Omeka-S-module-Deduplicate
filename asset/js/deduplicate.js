@@ -36,10 +36,10 @@ Omeka.deduplicateManageSelectedActions = function() {
 
         const batchActions = $('#batch-form .batch-actions');
         batchActions.append(
-            $('<input type="submit" class="deduplicate_selected" formaction="deduplicate">').val(Omeka.jsTranslate('Go'))
+            $('<input type="submit" class="deduplicate_selected" formaction="deduplicate/manual">').val(Omeka.jsTranslate('Go'))
         );
         batchActions.append(
-            $('<input type="submit" class="deduplicate_all" formaction="deduplicate">').val(Omeka.jsTranslate('Go'))
+            $('<input type="submit" class="deduplicate_all" formaction="deduplicate/manual">').val(Omeka.jsTranslate('Go'))
         );
         batchActions.append(
             $('<input type="submit" class="deduplicate_selected_auto" formaction="deduplicate/auto">').val(Omeka.jsTranslate('Go'))

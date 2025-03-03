@@ -55,7 +55,7 @@ return [
         ],
         'Deduplicate' => [
             [
-                'label' => 'Manual', // @translate
+                'label' => 'Automatic', // @translate
                 'route' => 'admin/deduplicate',
                 'action' => 'index',
                 'resource' => 'Omeka\Controller\Admin\Item',
@@ -63,15 +63,15 @@ return [
                 'pages' => [
                     [
                         'route' => 'admin/deduplicate',
-                        'action' => 'manual',
+                        'action' => 'auto',
                         'visible' => false,
                     ],
                 ],
             ],
             [
-                'label' => 'Automatic', // @translate
+                'label' => 'Manual', // @translate
                 'route' => 'admin/deduplicate',
-                'action' => 'auto',
+                'action' => 'manual',
                 'resource' => 'Omeka\Controller\Admin\Item',
                 'privilege' => 'batch-delete',
             ],
