@@ -21,7 +21,7 @@ $escapeAttr = $plugins->get('escapeHtmlAttr');
 
 $maxResources = $setting('pagination_per_page') ?: \Omeka\Stdlib\Paginator::PER_PAGE;
 
-$this->htmlElement('body')->appendAttribute('class', 'deduplicate resources show');
+$this->htmlElement('body')->appendAttribute('class', 'deduplicate resources show manual');
 
 $form->prepare();
 
@@ -63,12 +63,12 @@ $hasMultipleResources = $totalResources > 1;
 
     <?php if ($hasMultipleResources): ?>
     <form id="deduplicate-resource" method="POST" name="deduplicate-resource">
-        <input type="hidden" name="query" value="<?= $escapeAttr(json_encode($query ?: array_map(function($v) { return $v->id(); }, $resources), 320)) ?>"/>
+        <input type="hidden" name="query" value="<?= $escapeAttr(json_encode($query ?: array_map(fn ($v) => $v->id(), $resources), 320)) ?>"/>
         <input type="hidden" name="resource_type" value="<?= $escapeAttr($resourceType) ?>"/>
         <input type="hidden" name="deduplicate_property" value="<?= $property ? $escapeAttr($property->term()) : '' ?>"/>
         <input type="hidden" name="deduplicate_value" value="<?= $escapeAttr($value) ?>"/>
         <input type="hidden" name="method" value="<?= $escapeAttr($method) ?>"/>
-        <input type="hidden" name="deduplicateform_csrf" value="<?= $form->get('deduplicateform_csrf')->getValue() ?>"/>
+        <input type="hidden" name="csrf" value="<?= $form->get('csrf')->getValue() ?>"/>
         <p>
             <?= $translate('Select the resource to keep and the ones to merge.') ?>
             <br/>

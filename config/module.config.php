@@ -8,6 +8,11 @@ return [
             dirname(__DIR__) . '/view',
         ],
     ],
+    'form_elements' => [
+        'invokables' => [
+            Form\DeduplicateForm::class => Form\DeduplicateForm::class,
+        ],
+    ],
     'controllers' => [
         'invokables' => [
             'Deduplicate\Controller\Index' => Controller\IndexController::class,

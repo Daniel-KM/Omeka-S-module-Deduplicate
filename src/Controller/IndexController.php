@@ -41,18 +41,16 @@ class IndexController extends AbstractActionController
 
         if ($isPost) {
             $property = empty($params['deduplicate_property']) ? null : $params['deduplicate_property'];
-            if ($property) {
-                /** @var \Omeka\Api\Representation\PropertyRepresentation $property */
-                $property = $api->searchOne('properties', is_numeric($property) ? ['id' => (int) $property] : ['vocabulary_prefix' => strtok($property, ':'), 'local_name' => strtok(':')])->getContent();
-                if (!$property) {
-                    $this->messenger()->addError(new PsrMessage(
-                        'The property {property} does not exist.', // @translate
-                        ['property' => $params['property']]
-                    ));
-                    $hasError = true;
-                }
+            $propertyTerm = $this->easyMeta()->propertyTerm($property);
+            if ($property && !$propertyTerm) {
+                $this->messenger()->addError(new PsrMessage(
+                    'The property {property} does not exist.', // @translate
+                    ['property' => $params['deduplicate_property']]
+                ));
+                $hasError = true;
+            } else {
+                $property = $propertyTerm;
             }
-            $args['property'] = $property;
 
             $value = $params['deduplicate_value'] ?? '';
             if ($property && !strlen($value)) {
@@ -108,7 +106,7 @@ class IndexController extends AbstractActionController
                 $query = ['id' => $resourceIds];
             } else {
                 $query = $params['query'] ?? '[]';
-                $query = array_diff_key(json_decode($query, true) ?: [], array_flip(['csrf', 'deduplicateform_csrf', 'sort_by', 'sort_order', 'page', 'per_page', 'offset', 'limit']));
+                $query = array_diff_key(json_decode($query, true) ?: [], array_flip(['csrf', 'sort_by', 'sort_order', 'page', 'per_page', 'offset', 'limit']));
             }
 
             if ($query) {
@@ -129,7 +127,7 @@ class IndexController extends AbstractActionController
                 // Do the search via module AdvancedSearch.
                 $queryResources = $query;
                 if ($property && strlen($value)) {
-                    $nearValues = $this->near($method, $value, $property->id(), $resourceType, $query);
+                    $nearValues = $this->getValuesNear($method, $value, $property, $resourceType, $query);
                     if (is_null($nearValues)) {
                         $this->messenger()->addWarning(new PsrMessage(
                             'There are too many similar values near "{value}". You may filter resources first.', // @translate
@@ -139,19 +137,19 @@ class IndexController extends AbstractActionController
                     } elseif (!$nearValues) {
                         $this->messenger()->addWarning(new PsrMessage(
                             'There is no existing value for property {property} near "{value}".', // @translate
-                            ['property' => $property->term(), 'value' => $value]
+                            ['property' => $property, 'value' => $value]
                         ));
                         $hasError = true;
                     } else {
                         /* TODO Add a near query in Advanced Search via mysql.
                         $queryResources['property'][] = [
-                            'property' => $property->term(),
+                            'property' => $property,
                             'type' => 'near',
                             'value' => $value,
                         ];
                         */
                         $queryResources['property'][] = [
-                            'property' => $property->term(),
+                            'property' => $property,
                             'type' => 'list',
                             'text' => $nearValues,
                         ];
@@ -196,10 +194,10 @@ class IndexController extends AbstractActionController
 
         $form->init();
         $form->setData([
-            'deduplicate_property' => isset($property) ? $property->term() : null,
+            'deduplicate_property' => $property,
             'deduplicate_value' => $value ?? null,
             'method' => $method ?? 'equal',
-            'deduplicateform_csrf' => $params['deduplicateform_csrf'] ?? null,
+            'csrf' => $params['csrf'] ?? null,
         ]);
 
         $view = new ViewModel($args);
@@ -251,18 +249,14 @@ class IndexController extends AbstractActionController
      * There is no simple way to do a search "similar" in mysql and doctrine
      * doesn't implement "soundex" easily, so process via php.
      */
-    protected function near(string $method, ?string $value, $propertyId, string $resourceType, array $query): array
+    protected function getValuesNear(string $method, ?string $value, ?string $property, string $resourceType, array $query): array
     {
-        if (is_null($value) || !strlen($value) || !$propertyId) {
+        if (is_null($value) || !strlen($value)) {
             return [];
         }
 
-        $query['property'][] = [
-            'property' => $propertyId,
-            'type' => 'ex',
-        ];
-        $response = $this->api()->search($resourceType, $query, ['returnScalar' => 'id']);
-        if (!$response->getTotalResults()) {
+        $propertyId = $this->easyMeta()->propertyId($property);
+        if (!$propertyId) {
             return [];
         }
 
@@ -278,6 +272,14 @@ class IndexController extends AbstractActionController
             return [$value];
         }
 
+        $query['property'][] = [
+            'property' => $propertyId,
+            'type' => 'ex',
+        ];
+        $response = $this->api()->search($resourceType, $query, ['returnScalar' => 'id']);
+        if (!$response->getTotalResults()) {
+            return [];
+        }
         $filteredIds = $response->getContent();
 
         /** @var \Doctrine\DBAL\Connection $connection */
@@ -285,10 +287,13 @@ class IndexController extends AbstractActionController
         $qb = $connection->createQueryBuilder();
         $expr = $qb->expr();
         $qb
-            ->select('DISTINCT value.value')
+            ->distinct()
+            ->select('value.value')
             ->from('value', 'value')
             ->where($expr->eq('value.property_id', ':property_id'))
             ->andWhere($expr->in('value.resource_id', ':resource_ids'))
+            ->andWhere($expr->neq('value.value', ''))
+            ->andWhere($expr->isNotNull('value.value'))
             // TODO What is the purpuse of this limit (for big values)? Once the value is specified, there is no issue.
             // ->andWhere($expr->lte('LENGTH(value.value)', 255))
             ->addOrderBy('value.value', 'asc')
