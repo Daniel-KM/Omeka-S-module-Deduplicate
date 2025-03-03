@@ -10,6 +10,11 @@ class IndexController extends AbstractActionController
 {
     public function indexAction()
     {
+        $this->forward()->dispatch('Deduplicate\Controller\Index', ['action' => 'manual']);
+    }
+
+    public function manualAction()
+    {
         /** @var \Deduplicate\Form\DeduplicateForm $form */
         $form = $this->getForm(\Deduplicate\Form\DeduplicateForm::class);
 

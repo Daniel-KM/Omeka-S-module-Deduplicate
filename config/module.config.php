@@ -22,6 +22,9 @@ return [
                         'type' => \Laminas\Router\Http\Literal::class,
                         'options' => [
                             'route' => '/deduplicate',
+                            'constraints' => [
+                                'action' => 'index|manual',
+                            ],
                             'defaults' => [
                                 '__NAMESPACE__' => 'Deduplicate\Controller',
                                 '__ADMIN__' => true,
@@ -42,7 +45,7 @@ return [
                 'controller' => 'index',
                 'resource' => 'Omeka\Controller\Admin\Item',
                 'privilege' => 'batch-delete',
-                'class' => 'o-icon- item-sets',
+                'class' => 'o-icon- fa-clone',
             ],
         ],
     ],
