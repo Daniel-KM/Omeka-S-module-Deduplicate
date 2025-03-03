@@ -54,8 +54,8 @@ class IndexController extends AbstractActionController
             return $view;
         }
 
-        $params = $form->getData();
-        $property = $params['deduplicate_property'] ?? null;
+        $data = $form->getData();
+        $property = $data['deduplicate_property'] ?? null;
         if (!$property) {
             $this->messenger()->addError(
                 'A property to deduplicate on is required.' // @translate
@@ -63,10 +63,10 @@ class IndexController extends AbstractActionController
             return $view;
         }
 
-        unset($params['csrf']);
+        unset($data['csrf']);
 
         $resourceType = 'items';
-        $method = $params['method'] ?? 'equal';
+        $method = $data['method'] ?? 'equal';
         $query = [];
 
         $duplicates = $this->getDuplicates($resourceType, $property, $method, $query);
@@ -79,7 +79,7 @@ class IndexController extends AbstractActionController
             'method' => $method,
             'duplicates' => $duplicates,
             'skips' => [],
-            'process' => (int) !empty($params['process']),
+            'process' => (int) !empty($data['process']),
         ]);
 
         if (!$duplicates) {
@@ -120,9 +120,28 @@ class IndexController extends AbstractActionController
             ));
         }
 
-        if (empty($params['process'])) {
+        // Add a security: don't change property.
+        $selectedProperty = [
+            'name' => 'property_selected',
+            'type' => \Laminas\Form\Element\Hidden::class,
+            'attributes' => [
+                'value' => $property,
+            ],
+        ];
+
+        $form->get('deduplicate_property')->setAttribute('readonly', 'readonly');
+        $form->add($selectedProperty);
+
+        if (empty($data['process'])) {
             $this->messenger()->addWarning(
                 'Confirm removing duplicates, except the first, by checking the checkbox.' // @translate
+            );
+            return $view;
+        }
+
+        if (($params['property_selected'] ?? null) !== $property) {
+            $this->messenger()->addWarning(
+                'You cannot change property when submitting form.' // @translate
             );
             return $view;
         }
