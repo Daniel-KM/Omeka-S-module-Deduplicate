@@ -95,7 +95,35 @@ class Module extends AbstractModule
 
     public function addHeadersAdmin(Event $event): void
     {
+        $services = $this->getServiceLocator();
+
+        /** @var \Laminas\Router\Http\RouteMatch $routeMatch */
+        $routeMatch = $services->get('Application')->getMvcEvent()->getRouteMatch();
+        if (empty($routeMatch)) {
+            return;
+        }
+
+        $controller = $routeMatch->getParam('controller');
+
+        $controllersToAdapters = [
+            'item' => 'Omeka\Api\Adapter\ItemAdapter',
+            'item-set' => 'Omeka\Api\Adapter\ItemSetAdapter',
+            'media' => 'Omeka\Api\Adapter\MediaAdapter',
+            'Omeka\Controller\Admin\Item' => 'Omeka\Api\Adapter\ItemAdapter',
+            'Omeka\Controller\Admin\ItemSet' => 'Omeka\Api\Adapter\ItemSetAdapter',
+            'Omeka\Controller\Admin\Media' => 'Omeka\Api\Adapter\MediaAdapter',
+        ];
+        if (!isset($controllersToAdapters[$controller])) {
+            return;
+        }
+
         $view = $event->getTarget();
+        $adapter = $controllersToAdapters[$controller];
+
+        if (!$view->userIsAllowed($adapter, 'batch_delete_all')) {
+            return;
+        }
+
         $assetUrl = $view->plugin('assetUrl');
         $view->headScript()
             ->appendFile($assetUrl('js/deduplicate.js', 'Deduplicate'), 'text/javascript', ['defer' => 'defer']);
