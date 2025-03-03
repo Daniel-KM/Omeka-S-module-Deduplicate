@@ -16,10 +16,14 @@ $plugins = $this->getHelperPluginManager();
 $url = $plugins->get('url');
 $setting = $plugins->get('setting');
 $escape = $plugins->get('escapeHtml');
+$assetUrl = $plugins->get('assetUrl');
 $translate = $plugins->get('translate');
 $escapeAttr = $plugins->get('escapeHtmlAttr');
 
 $maxResources = $setting('pagination_per_page') ?: \Omeka\Stdlib\Paginator::PER_PAGE;
+
+$this->headLink()
+    ->appendStylesheet($assetUrl('css/deduplicate.css', 'Deduplicate'));
 
 $this->htmlElement('body')->appendAttribute('class', 'deduplicate resources show manual');
 
@@ -28,7 +32,19 @@ $form->prepare();
 $hasMultipleResources = $totalResources > 1;
 ?>
 
-<?= $this->pageTitle($translate('Deduplicate resources')) ?>
+<?= $this->pageTitle($translate('Manual'), 1, $translate('Deduplicate')) ?>
+
+<div id="page-actions">
+    <?= $this->cancelButton() ?>
+    <button type="submit" class="button" name="deduplicate_all" form="form-deduplicate"><?= $escape('Search') ?></button>
+    <?php if ($hasMultipleResources): ?>
+    <button type="submit" class="button" name="deduplicate_submit" form="deduplicate-resource"><?= $escape('Merge') ?></button>
+    <?php endif; ?>
+</div>
+
+<nav class="section-nav">
+    <?= $this->navigation('Laminas\Navigation\Deduplicate')->menu() ?>
+</nav>
 
 <?php if ($totalResourcesQuery): ?>
 
@@ -112,11 +128,3 @@ $hasMultipleResources = $totalResources > 1;
     <?php endif; ?>
 
 <?php endif; ?>
-
-<div id="page-actions">
-    <?= $this->cancelButton() ?>
-    <button type="submit" name="deduplicate_all" form="deduplicateform"><?= $escape('Search') ?></button>
-    <?php if ($hasMultipleResources): ?>
-    <button type="submit" name="deduplicate_submit" form="deduplicate-resource"><?= $escape('Merge') ?></button>
-    <?php endif; ?>
-</div>

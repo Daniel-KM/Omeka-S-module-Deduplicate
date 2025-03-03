@@ -10,6 +10,7 @@ return [
     ],
     'form_elements' => [
         'invokables' => [
+            Form\DeduplicateAutoForm::class => Form\DeduplicateAutoForm::class,
             Form\DeduplicateForm::class => Form\DeduplicateForm::class,
         ],
     ],
@@ -24,11 +25,11 @@ return [
             'admin' => [
                 'child_routes' => [
                     'deduplicate' => [
-                        'type' => \Laminas\Router\Http\Literal::class,
+                        'type' => \Laminas\Router\Http\Segment::class,
                         'options' => [
-                            'route' => '/deduplicate',
+                            'route' => '/deduplicate[/:action]',
                             'constraints' => [
-                                'action' => 'index|manual',
+                                'action' => 'index|auto|manual',
                             ],
                             'defaults' => [
                                 '__NAMESPACE__' => 'Deduplicate\Controller',
@@ -47,10 +48,32 @@ return [
             'deduplicate' => [
                 'label' => 'Deduplicate', // @translate
                 'route' => 'admin/deduplicate',
-                'controller' => 'index',
                 'resource' => 'Omeka\Controller\Admin\Item',
                 'privilege' => 'batch-delete',
                 'class' => 'o-icon- fa-clone',
+            ],
+        ],
+        'Deduplicate' => [
+            [
+                'label' => 'Manual', // @translate
+                'route' => 'admin/deduplicate',
+                'action' => 'index',
+                'resource' => 'Omeka\Controller\Admin\Item',
+                'privilege' => 'batch-delete',
+                'pages' => [
+                    [
+                        'route' => 'admin/deduplicate',
+                        'action' => 'manual',
+                        'visible' => false,
+                    ],
+                ],
+            ],
+            [
+                'label' => 'Automatic', // @translate
+                'route' => 'admin/deduplicate',
+                'action' => 'auto',
+                'resource' => 'Omeka\Controller\Admin\Item',
+                'privilege' => 'batch-delete',
             ],
         ],
     ],

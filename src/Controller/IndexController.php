@@ -10,7 +10,125 @@ class IndexController extends AbstractActionController
 {
     public function indexAction()
     {
-        $this->forward()->dispatch('Deduplicate\Controller\Index', ['action' => 'manual']);
+        $params = $this->params()->fromRoute();
+        $params['action'] = 'manual';
+        return $this->forward()->dispatch(__CLASS__, $params);
+    }
+
+
+    public function autoAction()
+    {
+        /** @var \Deduplicate\Form\DeduplicateAutoForm $form */
+        $form = $this->getForm(\Deduplicate\Form\DeduplicateAutoForm::class);
+
+        $request = $this->getRequest();
+
+        $view = new ViewModel([
+            'form' => $form,
+            'resourceType' => null,
+            'property' => null,
+            'query' => null,
+            'method' => null,
+            'duplicates' => [],
+            'process' => '0',
+        ]);
+
+        $hiddenProcess = [
+            'name' => 'process',
+            'type' => \Laminas\Form\Element\Hidden::class,
+            'attributes' => [
+                'id' => 'deduplicate-process',
+                'value' => '0',
+            ],
+        ];
+
+        if (!$request->isPost()) {
+            $form->remove('process')->add($hiddenProcess);
+            return $view;
+        }
+
+        $params = $request->getPost();
+        $form->setData($params);
+        if (!$form->isValid()) {
+            $this->messenger()->addErrors($form->getMessages());
+            return $view;
+        }
+
+        $params = $form->getData();
+        $property = $params['deduplicate_property'] ?? null;
+        if (!$property) {
+            $this->messenger()->addError(
+                'A property to deduplicate on is required.' // @translate
+            );
+            return $view;
+        }
+
+        unset($params['csrf']);
+
+        $resourceType = 'items';
+        $method = $params['method'] ?? 'equal';
+        $query = [];
+
+        $duplicates = $this->getDuplicates($resourceType, $property, $method, $query);
+
+        $view = new ViewModel([
+            'form' => $form,
+            'resourceType' => $resourceType,
+            'property' => $property,
+            'query' => $query,
+            'method' => $method,
+            'duplicates' => $duplicates,
+            'process' => (int) !empty($params['process']),
+        ]);
+
+        if (!$duplicates) {
+            $this->messenger()->addSuccess(new PsrMessage(
+                'There are no duplicates for the property {property}.', // @translate
+                ['property' => $property]
+             ));
+            $form->remove('process')->add($hiddenProcess);
+            return $view;
+        }
+
+        $this->messenger()->addSuccess(new PsrMessage(
+            'There are {count} duplicates for the property {property}.', // @translate
+            ['count' => count($duplicates), 'property' => $property]
+        ));
+
+        if (empty($params['process'])) {
+            $this->messenger()->addWarning(
+                'Confirm removing duplicates, except the first, by checking the checkbox.' // @translate
+            );
+            return $view;
+        }
+
+        // Remove first resource and keep only the list of resources.
+        // The results are already ordered by resource id.
+        $result = [];
+        foreach ($duplicates as $rs) {
+            array_shift($rs);
+            $result[] = $rs;
+        }
+
+        $result = array_unique(array_merge(...$result));
+        sort($result);
+
+        if (count($result)) {
+            try {
+                $this->api()->batchDelete('items', $result);
+                $this->messenger()->addWarning(new PsrMessage(
+                    '{count} duplicates were removed.', // @translate
+                    ['count' => count($result)]
+                ));
+            } catch (\Exception $e) {
+                $this->messenger()->addWarning(new PsrMessage(
+                    'An error occurred when deleting duplicates: {msg}.', // @translate
+                    ['msg' => $e->getMessage()]
+                ));
+            }
+        }
+
+        return $view;
     }
 
     public function manualAction()
@@ -243,6 +361,103 @@ class IndexController extends AbstractActionController
         }
 
         return $view;
+    }
+
+    /**
+     * Search all resources grouped by duplicate values on the specified property.
+     */
+    protected function getDuplicates(string $resourceType, string $property, string $method, array $query): array
+    {
+        $propertyId = $this->easyMeta()->propertyId($property);
+        if (!$propertyId) {
+            return [];
+        }
+
+        $methods = [
+            'equal',
+            'equal_insensitive',
+        ];
+        $method = in_array($method, $methods) ? $method : 'equal';
+
+        $filteredIds = null;
+        if ($query) {
+            $query['property'][] = [
+                'property' => $propertyId,
+                'type' => 'ex',
+            ];
+            $response = $this->api()->search($resourceType, $query, ['returnScalar' => 'id']);
+            if (!$response->getTotalResults()) {
+                return [];
+            }
+            $filteredIds = $response->getContent();
+        }
+
+        // Get all values for the specified resources.
+
+        /** @var \Doctrine\DBAL\Connection $connection */
+        $connection = $this->api()->read('vocabularies', 1)->getContent()->getServiceLocator()->get('Omeka\Connection');
+        $qb = $connection->createQueryBuilder();
+        $expr = $qb->expr();
+        $qb
+            ->distinct()
+            ->from('value', 'value')
+            // TODO Only items are managed currently.
+            ->innerJoin('value', 'item', 'resource', 'resource.id = value.resource_id')
+            ->where($expr->eq('value.property_id', ':property_id'))
+            ->andWhere($expr->neq('value.value', ':empty_string'))
+            ->andWhere($expr->isNotNull('value.value'))
+            // TODO Deduplicate on linked resource id.
+            ->andWhere($expr->isNull('value.value_resource_id'))
+            // TODO Deduplicate early directly in mysql (count(value) > 2).
+            ->groupBy('value.id');
+
+        if ($method === 'equal_insensitive') {
+            $qb
+                ->select('LOWER(value.value) AS v', 'value.resource_id AS r')
+                ->addOrderBy('LOWER(value.value)', 'asc');
+        } else {
+            $qb
+                // TODO Use group_concat, but limited to 1024 by default.
+                ->select('value.value AS v', 'value.resource_id AS r')
+                ->addOrderBy('value.value', 'asc');
+        }
+        $qb
+            ->addOrderBy('value.resource_id', 'asc');
+
+        $bind = [
+            'property_id' => $propertyId,
+            'empty_string' => '',
+        ];
+        $types = [
+            'property_id' => \Doctrine\DBAL\ParameterType::INTEGER,
+            'empty_string' => \Doctrine\DBAL\ParameterType::STRING,
+        ];
+
+        if ($filteredIds) {
+            $qb
+                ->andWhere($expr->in('value.resource_id', ':resource_ids'));
+            $bind['resource_ids'] = $filteredIds;
+            $types['resource_ids'] = $connection::PARAM_INT_ARRAY;
+        }
+        $allValues = $connection->executeQuery($qb, $bind, $types)->fetchAllAssociative();
+
+        $result = [];
+        foreach ($allValues as $data) {
+            $result[$data['v']][] = $data['r'];
+        }
+
+        // Clean and order duplicates by resources.
+        foreach ($result as $v => $rs) {
+            $rs = array_unique($rs);
+            if (count($rs) < 2) {
+                unset($result[$v]);
+            } else {
+                sort($rs);
+                $result[$v] = $rs;
+            }
+        }
+
+        return $result;
     }
 
     /**
