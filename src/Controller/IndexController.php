@@ -116,6 +116,7 @@ class IndexController extends AbstractActionController
         }
 
         $resourceType = $data['resource_type'] ?? $resourceType;
+        $resourceType = $this->easyMeta()->resourceName($resourceType);
 
         $duplicates = $this->getDuplicates($resourceType, $property, $method, $query);
 
@@ -213,7 +214,7 @@ class IndexController extends AbstractActionController
             $this->messenger()->addWarning(
                 'No duplicates were removed, because duplicated resources have multiple duplicate values.' // @translate
             );
-        } else {
+        } elseif (count($result) <= 100) {
             try {
                 $this->api()->batchDelete($resourceType, $result);
             } catch (\Exception $e) {
@@ -223,6 +224,35 @@ class IndexController extends AbstractActionController
                 ));
                 return $view;
             }
+        } else {
+            // Use a job for big deduplication.
+            // Use the Omeka job.
+            $jobParams = [
+                'resource' => $resourceType,
+                'query' => ['id' => $result],
+            ];
+            $job = $this->jobDispatcher()->dispatch(\Omeka\Job\BatchDelete::class, $jobParams);
+            $urlPlugin = $this->url();
+            // This job has no log.
+            $message = new PsrMessage(
+                'Processing deduplication in background (job {link}#{job_id}{link_end}, {link_log}logs{link_end}).', // @translate
+                [
+                    'link' => sprintf(
+                        '<a href="%s">',
+                        htmlspecialchars($urlPlugin->fromRoute('admin/id', ['controller' => 'job', 'id' => $job->getId()]))
+                    ),
+                    'job_id' => $job->getId(),
+                    'link_end' => '</a>',
+                    'link_log' => sprintf(
+                        '<a href="%1$s">',
+                        class_exists('Log\Module', false)
+                            ? $urlPlugin->fromRoute('admin/default', ['controller' => 'log'], ['query' => ['job_id' => $job->getId()]])
+                            : $urlPlugin->fromRoute('admin/id', ['controller' => 'job', 'action' => 'log', 'id' => $job->getId()])
+                    ),
+                ]
+            );
+            $message->setEscapeHtml(false);
+            $this->messenger()->addSuccess($message);
         }
 
         $this->messenger()->addWarning(new PsrMessage(
