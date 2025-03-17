@@ -34,7 +34,7 @@ class DeduplicateAutoForm extends Form
                 'options' => [
                     'label' => 'Heuristic to find similar values', // @translate
                     'value_options' => [
-                        'equal' => 'Equal', // @translate
+                        'equal' => 'Equal (exactly)', // @translate
                         'equal_insensitive' => 'Equal (case insensitive)', // @translate
                     ],
                 ],

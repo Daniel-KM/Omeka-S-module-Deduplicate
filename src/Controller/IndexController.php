@@ -130,7 +130,7 @@ class IndexController extends AbstractActionController
             'process' => (int) !empty($data['process']),
         ]);
 
-        if (!$duplicates) {
+        if (!count($duplicates)) {
             $this->messenger()->addSuccess(new PsrMessage(
                 'There are no duplicates for the property {property}.', // @translate
                 ['property' => $property]
@@ -414,7 +414,7 @@ class IndexController extends AbstractActionController
 
         $form->init();
         $form->setData([
-            'deduplicate_property' => $property,
+            'deduplicate_property' => $property ?? null,
             'deduplicate_value' => $value ?? null,
             'method' => $method ?? 'equal',
             'csrf' => $params['csrf'] ?? null,
@@ -506,63 +506,74 @@ class IndexController extends AbstractActionController
 
         /** @var \Doctrine\DBAL\Connection $connection */
         $connection = $this->api()->read('vocabularies', 1)->getContent()->getServiceLocator()->get('Omeka\Connection');
-        $qb = $connection->createQueryBuilder();
-        $expr = $qb->expr();
-        $qb
-            ->distinct()
-            ->from('value', 'value')
-            ->innerJoin('value', $table, 'resource', 'resource.id = value.resource_id')
-            ->where($expr->eq('value.property_id', ':property_id'))
-            ->andWhere($expr->neq('value.value', ':empty_string'))
-            ->andWhere($expr->isNotNull('value.value'))
-            // TODO Deduplicate on linked resource id.
-            ->andWhere($expr->isNull('value.value_resource_id'))
-            // TODO Deduplicate early directly in mysql (count(value) > 2).
-            ->groupBy('value.id');
 
-        if ($method === 'equal_insensitive') {
-            $qb
-                ->select('LOWER(value.value) AS v', 'value.resource_id AS r')
-                ->addOrderBy('LOWER(value.value)', 'asc');
-        } else {
-            $qb
-                // TODO Use group_concat, but limited to 1024 by default.
-                ->select('value.value AS v', 'value.resource_id AS r')
-                ->addOrderBy('value.value', 'asc');
-        }
-        $qb
-            ->addOrderBy('value.resource_id', 'asc');
+        // The previous version used a similar query, but with php processing,
+        // and the query was not optimized and slower.
 
-        $bind = [
-            'property_id' => $propertyId,
-            'empty_string' => '',
-        ];
-        $types = [
-            'property_id' => \Doctrine\DBAL\ParameterType::INTEGER,
-            'empty_string' => \Doctrine\DBAL\ParameterType::STRING,
-        ];
+        // A transactional is required because group_concat is used and its
+        // limit should be larger.
+        // The setting "group_concat_max_len" should be lower than "max_allowed_packet",
+        // divided by the number of rows. The default is 1024 in mysql and 1MB
+        // in recent version of mariadb. 1000000 characters mean that until
+        // 200000 resources can be duplicated with the same value, so it is
+        // largely enough in real cases and the process can be redone, because
+        // only the first is kept.
+        // Warning: the last number may be cut.
+        $duplicates = $connection->transactional(function(\Doctrine\DBAL\Connection $connection)
+            use ($table, $propertyId, $method, $filteredIds): array
+        {
+            $bind = ['property_id' => $propertyId];
+            $types = ['property_id' => \Doctrine\DBAL\ParameterType::INTEGER];
 
-        if ($filteredIds) {
-            $qb
-                ->andWhere($expr->in('value.resource_id', ':resource_ids'));
-            $bind['resource_ids'] = $filteredIds;
-            $types['resource_ids'] = $connection::PARAM_INT_ARRAY;
-        }
-        $allValues = $connection->executeQuery($qb, $bind, $types)->fetchAllAssociative();
+            if ($method === 'equal_insensitive') {
+                $modeStart = 'LOWER(';
+                $modeEnd = ')';
+            } else {
+                $modeStart = 'CAST(';
+                $modeEnd = ' AS BINARY)';
+            }
+
+            if ($filteredIds) {
+                $bind['resource_ids'] = $filteredIds;
+                $types['resource_ids'] = $connection::PARAM_INT_ARRAY;
+                $andFilteredIds = 'AND (`value`.`resource_id` IN (:resource_ids))';
+            } else {
+                $andFilteredIds = '';
+            }
+
+            // Another way to do it is to check the count and to do a second
+            // query when the group is lower than the number.
+            $connection->executeQuery('SET SESSION group_concat_max_len = 1000000;');
+            $sql = <<<SQL
+                SELECT
+                    $modeStart`value`.`value`$modeEnd AS v,
+                    GROUP_CONCAT(DISTINCT `value`.`resource_id` ORDER BY `value`.`resource_id` ASC) AS i
+                FROM `value` `value`
+                INNER JOIN `$table` `resource` ON `resource`.`id` = `value`.`resource_id`
+                WHERE (`value`.`property_id` = :property_id)
+                    AND (`value`.`value` <> "")
+                    AND (`value`.`value` IS NOT NULL)
+                    AND (`value`.`value_resource_id` IS NULL)
+                    $andFilteredIds
+                GROUP BY $modeStart`value`.`value`$modeEnd
+                HAVING COUNT(DISTINCT `value`.`resource_id`) > 1
+                ORDER BY $modeStart`value`.`value`$modeEnd ASC;
+                SQL;
+
+            $result = $connection->executeQuery($sql, $bind, $types);
+            return $result->fetchAllAssociative();
+        });
 
         $result = [];
-        foreach ($allValues as $data) {
-            $result[$data['v']][] = $data['r'];
-        }
-
-        // Clean and order duplicates by resources.
-        foreach ($result as $v => $rs) {
-            $rs = array_unique($rs);
-            if (count($rs) < 2) {
-                unset($result[$v]);
-            } else {
-                sort($rs);
-                $result[$v] = $rs;
+        foreach ($duplicates as $data) {
+            $result[$data['v']] = explode(',', $data['i']);
+            if (strlen($data['i']) > 1000000 - 10) {
+                $this->messenger()->addWarning(new PsrMessage(
+                    'The value {value} has too much duplicates and will requires a second deduplication.', // @translate
+                    ['value' => $data['v']]
+                ));
+                // Cut the last resource id to avoid a wrong id.
+                array_pop($result[$data['v']]);
             }
         }
 
