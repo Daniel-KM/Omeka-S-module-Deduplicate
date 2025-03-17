@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 00:00+0000\n"
+"POT-Creation-Date: 2025-03-17 00:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -28,6 +28,11 @@ msgstr ""
 
 #: view/deduplicate/index/auto.phtml:32 view/deduplicate/index/manual.phtml:35
 msgid "Deduplicate"
+msgstr ""
+
+#: view/deduplicate/index/auto.phtml:49
+#, php-format
+msgid "The process is done on a selection of %1$sresources%2$s."
 msgstr ""
 
 #: view/deduplicate/index/auto.phtml:54
@@ -143,8 +148,8 @@ msgstr ""
 msgid "Heuristic to find similar values"
 msgstr ""
 
-#: src/Form/DeduplicateAutoForm.php:37 src/Form/DeduplicateForm.php:49
-msgid "Equal"
+#: src/Form/DeduplicateAutoForm.php:37
+msgid "Equal (exactly)"
 msgstr ""
 
 #: src/Form/DeduplicateAutoForm.php:38
@@ -157,6 +162,10 @@ msgstr ""
 
 #: src/Form/DeduplicateForm.php:46
 msgid "Different algorithms can be used to detect \"similar\" values."
+msgstr ""
+
+#: src/Form/DeduplicateForm.php:49
+msgid "Equal"
 msgstr ""
 
 #: src/Form/DeduplicateForm.php:50
@@ -179,89 +188,96 @@ msgstr ""
 msgid "A property to deduplicate on is required."
 msgstr ""
 
-#: src/Controller/IndexController.php:135
+#: src/Controller/IndexController.php:136
 msgid "There are no duplicates for the property {property}."
 msgstr ""
 
-#: src/Controller/IndexController.php:143
+#: src/Controller/IndexController.php:144
 msgid "There are {count} duplicates for the property {property}."
 msgstr ""
 
-#: src/Controller/IndexController.php:166
+#: src/Controller/IndexController.php:167
 msgid ""
 "{count} resources are duplicated with several values and are kept: "
 "{resource_ids}"
 msgstr ""
 
-#: src/Controller/IndexController.php:185
+#: src/Controller/IndexController.php:186
 msgid ""
 "Confirm removing duplicates, except the first, by checking the checkbox."
 msgstr ""
 
-#: src/Controller/IndexController.php:192
+#: src/Controller/IndexController.php:193
 msgid "You cannot change property when submitting form."
 msgstr ""
 
-#: src/Controller/IndexController.php:214
+#: src/Controller/IndexController.php:215
 msgid ""
 "No duplicates were removed, because duplicated resources have multiple "
 "duplicate values."
 msgstr ""
 
-#: src/Controller/IndexController.php:221
+#: src/Controller/IndexController.php:222
 msgid "An error occurred when deleting duplicates: {msg}."
 msgstr ""
 
-#: src/Controller/IndexController.php:229
+#: src/Controller/IndexController.php:238
+#: src/Controller/IndexController.php:474
+msgid ""
+"Processing deduplication in background (job {link}#{job_id}{link_end}, "
+"{link_log}logs{link_end})."
+msgstr ""
+
+#: src/Controller/IndexController.php:259
 msgid "{count} duplicates were removed."
 msgstr ""
 
-#: src/Controller/IndexController.php:267
+#: src/Controller/IndexController.php:297
 msgid "The property {property} does not exist."
 msgstr ""
 
-#: src/Controller/IndexController.php:278
+#: src/Controller/IndexController.php:308
 msgid "A value to deduplicate on is required."
 msgstr ""
 
-#: src/Controller/IndexController.php:283
+#: src/Controller/IndexController.php:313
 msgid "A property is required to search on."
 msgstr ""
 
-#: src/Controller/IndexController.php:290
+#: src/Controller/IndexController.php:320
 msgid "The string is too long (more than {length} characters)."
 msgstr ""
 
-#: src/Controller/IndexController.php:322
+#: src/Controller/IndexController.php:352
 msgid "The query does not find selected resource ids."
 msgstr ""
 
-#: src/Controller/IndexController.php:337
+#: src/Controller/IndexController.php:367
 msgid "The query returned no resource."
 msgstr ""
 
-#: src/Controller/IndexController.php:353
+#: src/Controller/IndexController.php:383
 msgid ""
 "There are too many similar values near \"{value}\". You may filter resources "
 "first."
 msgstr ""
 
-#: src/Controller/IndexController.php:359
+#: src/Controller/IndexController.php:389
 msgid "There is no existing value for property {property} near \"{value}\"."
 msgstr ""
 
-#: src/Controller/IndexController.php:393
+#: src/Controller/IndexController.php:423
 msgid "The resource #{resource_id} does not exist."
 msgstr ""
 
-#: src/Controller/IndexController.php:407
+#: src/Controller/IndexController.php:437
 msgid "Some merged resources do not exist."
 msgstr ""
 
-#: src/Controller/IndexController.php:444
+#: src/Controller/IndexController.php:602
 msgid ""
-"Processing deduplication in background (job {link}#{job_id}{link_end}, "
-"{link_log}logs{link_end})."
+"The value {value} has too much duplicates and will requires a second "
+"deduplication."
 msgstr ""
 
 #: config/module.config.php:91

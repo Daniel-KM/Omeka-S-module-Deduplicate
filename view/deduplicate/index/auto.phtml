@@ -46,7 +46,7 @@ $resourceType = $easyMeta->resourceType($resourceType);
 
 <?php if ($query): ?>
     <p class="explanation">
-        <?= sprintf('The process is done on a selection of %1$sresources%2$s.', '<a href="' . $escapeAttr($url('admin/default', ['controller' => $resourceType, 'action' => 'browse'], ['query' => $query])) . '">', '</a>') ?>
+        <?= sprintf($translate('The process is done on a selection of %1$sresources%2$s.'), '<a href="' . $escapeAttr($url('admin/default', ['controller' => $resourceType, 'action' => 'browse'], ['query' => $query])) . '">', '</a>') ?>
     </p>
 <?php endif; ?>
 
